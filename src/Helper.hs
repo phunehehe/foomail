@@ -1,25 +1,25 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 module Helper where
 
-import Text.Printf (printf)
+import           Text.Printf                        (printf)
 
-import Data.Aeson
-import GHC.Generics
-import qualified Data.Text.Lazy as LT
-import Network.HaskellNet.IMAP.Types (UID)
-import Data.Maybe (mapMaybe)
-import Data.List (find, sort)
-import Codec.MIME.Parse (parseMIMEMessage)
-import Network.HaskellNet.IMAP.Connection (IMAPConnection)
-import qualified Network.HaskellNet.IMAP as I
-import Data.Text.Lazy.Encoding (decodeUtf8, encodeUtf8)
-import qualified Data.ByteString.Lazy as LB
-import qualified Codec.MIME.Type as CT
+import           Codec.MIME.Parse                   (parseMIMEMessage)
+import qualified Codec.MIME.Type                    as CT
+import           Data.Aeson
+import qualified Data.ByteString.Lazy               as LB
+import           Data.List                          (find, sort)
+import           Data.Maybe                         (mapMaybe)
+import qualified Data.Text.Lazy                     as LT
+import           Data.Text.Lazy.Encoding            (decodeUtf8, encodeUtf8)
+import           GHC.Generics
+import qualified Network.HaskellNet.IMAP            as I
+import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
+import           Network.HaskellNet.IMAP.Types      (UID)
 
 
-data Contact = Contact { contact_name :: Maybe LT.Text
+data Contact = Contact { contact_name    :: Maybe LT.Text
                        , contact_address :: LT.Text
                        } deriving (Generic)
 instance ToJSON Contact
@@ -29,19 +29,19 @@ instance Show Contact where
     show (Contact (Just name) address) =
         printf "%s <%s>" (LT.unpack $ name) (LT.unpack $ address)
 
-data Credential = Credential { email :: LT.Text
+data Credential = Credential { email    :: LT.Text
                              , password :: LT.Text
                              } deriving (Show, Generic)
 instance ToJSON Credential
 instance FromJSON Credential
 
-data Message = Message { uid :: Maybe UID
-                       , message_cc :: [Contact]
-                       , message_bcc :: [Contact]
-                       , date :: Maybe LT.Text
-                       , message_sender :: Maybe Contact
-                       , message_subject :: Maybe LT.Text
-                       , message_to :: [Contact]
+data Message = Message { uid              :: Maybe UID
+                       , message_cc       :: [Contact]
+                       , message_bcc      :: [Contact]
+                       , date             :: Maybe LT.Text
+                       , message_sender   :: Maybe Contact
+                       , message_subject  :: Maybe LT.Text
+                       , message_to       :: [Contact]
                        , message_contents :: [LT.Text]
                        } deriving (Show, Generic)
 instance ToJSON Message
