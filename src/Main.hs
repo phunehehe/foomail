@@ -21,6 +21,10 @@ import Data.List (find, sort)
 import Data.Maybe (mapMaybe)
 import Data.Text.Lazy.Encoding (decodeUtf8, encodeUtf8)
 import Network.HaskellNet.Auth (UserName, Password)
+import Network.HaskellNet.SMTP.SSL (connectSMTPSTARTTLS)
+import Network.HaskellNet.SMTP (sendCommand, Command(AUTH))
+import Network.HaskellNet.Auth (AuthType(PLAIN))
+import Network.HaskellNet.SMTP (sendMail, SMTPConnection)
 
 import Control.Applicative
 import Control.Monad.IO.Class
@@ -36,7 +40,7 @@ import Helper
 
 type MailApi = "api" :> "message" :> "list" :> ReqBody ListMessageRequest :> Get [Message]
           :<|> "api" :> "mailbox" :> "list" :> ReqBody ListMailboxRequest :> Get [MailboxName]
-          :<|> "api" :> "message" :> "send" :> ReqBody Message :> Post Message
+          :<|> "api" :> "message" :> "send" :> ReqBody SendMessageRequest :> Post ()
 
 
 data ListMessageRequest = ListMessageRequest { lmrEmail :: UserName
@@ -53,12 +57,41 @@ data ListMailboxRequest = ListMailboxRequest { lbrEmail :: UserName
 instance ToJSON ListMailboxRequest
 instance FromJSON ListMailboxRequest
 
+data SendMessageRequest = SendMessageRequest { smrEmail :: UserName
+                                             , smrPassword :: Password
+                                             , smrCc :: [Contact]
+                                             , smrBcc :: [Contact]
+                                             , smrDate :: Maybe LT.Text
+                                             , smrSender :: Maybe Contact
+                                             , smrSubject :: Maybe LT.Text
+                                             , smrTo :: [Contact]
+                                             , smrContents :: [LT.Text]
+                                             } deriving (Show, Generic)
+instance ToJSON SendMessageRequest
+instance FromJSON SendMessageRequest
+
 server :: Server MailApi
 server = listMessages
     :<|> listMailboxes
     :<|> sendMessage
 
-sendMessage = undefined
+sendMessage :: SendMessageRequest -> EitherT (Int, String) IO ()
+sendMessage request@SendMessageRequest{..} = liftIO $ do
+    -- TODO: put this in some config file
+    connection <- liftIO $ connectSMTPSTARTTLS "localhost"
+    liftIO $ sendCommand connection $ AUTH PLAIN smrEmail smrPassword
+    sendMail sender receivers mailContent connection
+    where
+        sender = case smrSender of
+            Nothing -> ""
+            Just contact -> show contact
+        receivers = map show $ smrTo ++ smrCc ++ smrBcc
+        mailContent = LB.toStrict $ encodeUtf8 $ LT.append subject body
+        subject = case smrSubject of
+            Nothing -> LT.empty
+            Just text -> text
+        -- TODO: support multi part
+        body = head $ smrContents
 
 listMailboxes :: ListMailboxRequest -> EitherT (Int, String) IO [MailboxName]
 listMailboxes request@ListMailboxRequest{..} = liftIO $ do
