@@ -3,31 +3,30 @@
 
 module Helper where
 
-import           Text.Printf                        (printf)
-
 import           Codec.MIME.Parse                   (parseMIMEMessage)
 import qualified Codec.MIME.Type                    as CT
-import           Data.Aeson
+import           Data.Aeson                         (FromJSON, ToJSON)
 import qualified Data.ByteString.Lazy               as LB
-import           Data.List                          (find, sort)
+import           Data.List                          (find)
 import           Data.Maybe                         (mapMaybe)
 import qualified Data.Text.Lazy                     as LT
-import           Data.Text.Lazy.Encoding            (decodeUtf8, encodeUtf8)
-import           GHC.Generics
+import           Data.Text.Lazy.Encoding            (decodeUtf8)
+import           GHC.Generics                       (Generic)
 import qualified Network.HaskellNet.IMAP            as I
 import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
 import           Network.HaskellNet.IMAP.Types      (UID)
+import           Text.Printf                        (printf)
 
 
-data Contact = Contact { contact_name    :: Maybe LT.Text
-                       , contact_address :: LT.Text
+data Contact = Contact { cName    :: Maybe LT.Text
+                       , cAddress :: LT.Text
                        } deriving (Generic)
 instance ToJSON Contact
 instance FromJSON Contact
 instance Show Contact where
-    show (Contact Nothing address) = LT.unpack $ address
+    show (Contact Nothing address) = LT.unpack address
     show (Contact (Just name) address) =
-        printf "%s <%s>" (LT.unpack $ name) (LT.unpack $ address)
+        printf "%s <%s>" (LT.unpack name) $ LT.unpack address
 
 data Credential = Credential { email    :: LT.Text
                              , password :: LT.Text
@@ -35,14 +34,14 @@ data Credential = Credential { email    :: LT.Text
 instance ToJSON Credential
 instance FromJSON Credential
 
-data Message = Message { uid              :: Maybe UID
-                       , message_cc       :: [Contact]
-                       , message_bcc      :: [Contact]
-                       , date             :: Maybe LT.Text
-                       , message_sender   :: Maybe Contact
-                       , message_subject  :: Maybe LT.Text
-                       , message_to       :: [Contact]
-                       , message_contents :: [LT.Text]
+data Message = Message { mUid      :: Maybe UID
+                       , mCc       :: [Contact]
+                       , mBcc      :: [Contact]
+                       , mDate     :: Maybe LT.Text
+                       , mSender   :: Maybe Contact
+                       , mSubject  :: Maybe LT.Text
+                       , mTo       :: [Contact]
+                       , mContents :: [LT.Text]
                        } deriving (Show, Generic)
 instance ToJSON Message
 instance FromJSON Message
@@ -86,14 +85,14 @@ parseContact (Just header) = Just $ Contact name address
 
 parseMessage :: UID -> LT.Text -> Message
 parseMessage _uid message = Message {
-    uid = Just _uid,
-    message_cc = cc,
-    message_bcc = bcc,
-    date = _date,
-    message_sender = _sender,
-    message_subject = _subject,
-    message_to = _to,
-    message_contents = _contents
+    mUid = Just _uid,
+    mCc = cc,
+    mBcc = bcc,
+    mDate = _date,
+    mSender = _sender,
+    mSubject = _subject,
+    mTo = _to,
+    mContents = _contents
 }
     where
         mimeValue = parseMIMEMessage $ LT.toStrict message
@@ -112,4 +111,5 @@ fetchMessage connection uid = do
     message <- I.fetch connection uid
     return $ parseMessage uid $ decodeUtf8 $ LB.fromStrict message
 
-messagesPerPage = 10 :: Int
+messagesPerPage  :: Int
+messagesPerPage = 10

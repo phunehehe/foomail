@@ -8,38 +8,32 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 
-import           Codec.MIME.Parse                   (parseMIMEMessage)
-import qualified Codec.MIME.Type                    as CT
-import qualified Data.ByteString.Lazy               as LB
-import           Data.List                          (find, sort)
-import           Data.Maybe                         (mapMaybe)
-import qualified Data.Text.Lazy                     as LT
-import           Data.Text.Lazy.Encoding            (decodeUtf8, encodeUtf8)
-import           Network.HaskellNet.Auth            (Password, UserName)
-import           Network.HaskellNet.Auth            (AuthType (PLAIN))
-import qualified Network.HaskellNet.IMAP            as I
-import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
-import           Network.HaskellNet.IMAP.SSL        (connectIMAPSSL)
-import           Network.HaskellNet.IMAP.Types      (MailboxName, UID)
-import           Network.HaskellNet.SMTP            (Command (AUTH),
-                                                     sendCommand)
-import           Network.HaskellNet.SMTP            (SMTPConnection, sendMail)
-import           Network.HaskellNet.SMTP.SSL        (connectSMTPSTARTTLS)
-import           Text.Printf                        (printf)
+import           Control.Monad.IO.Class        (liftIO)
+import           Control.Monad.Trans.Either    (EitherT)
+import           Data.Aeson                    (FromJSON, ToJSON)
+import qualified Data.ByteString.Lazy          as LB
+import           Data.List                     (sort)
+import           Data.Maybe                    (fromMaybe)
+import qualified Data.Text.Lazy                as LT
+import           Data.Text.Lazy.Encoding       (encodeUtf8)
+import           GHC.Generics                  (Generic)
+import           Network.HaskellNet.Auth       (AuthType (PLAIN), Password,
+                                                UserName)
+import qualified Network.HaskellNet.IMAP       as I
+import           Network.HaskellNet.IMAP.SSL   (connectIMAPSSL)
+import           Network.HaskellNet.IMAP.Types (MailboxName)
+import           Network.HaskellNet.SMTP       (Command (AUTH), sendCommand,
+                                                sendMail)
+import           Network.HaskellNet.SMTP.SSL   (connectSMTPSTARTTLS)
+import           Network.Wai.Handler.Warp      (run)
+import           Servant                       ((:<|>) (..), (:>), Get, Post,
+                                                Proxy (..), ReqBody, Server,
+                                                serve)
 
-import           Control.Applicative
-import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Either
-import           Data.Aeson
-import           Data.Proxy
-import           GHC.Generics
-import           Network.Wai.Handler.Warp           (run)
-import           Servant
-
-import           Helper
+import qualified Helper                        as H
 
 
-type MailApi = "api" :> "message" :> "list" :> ReqBody ListMessageRequest :> Get [Message]
+type MailApi = "api" :> "message" :> "list" :> ReqBody ListMessageRequest :> Get [H.Message]
           :<|> "api" :> "mailbox" :> "list" :> ReqBody ListMailboxRequest :> Get [MailboxName]
           :<|> "api" :> "message" :> "send" :> ReqBody SendMessageRequest :> Post ()
 
@@ -60,12 +54,12 @@ instance FromJSON ListMailboxRequest
 
 data SendMessageRequest = SendMessageRequest { smrEmail    :: UserName
                                              , smrPassword :: Password
-                                             , smrCc       :: [Contact]
-                                             , smrBcc      :: [Contact]
+                                             , smrCc       :: [H.Contact]
+                                             , smrBcc      :: [H.Contact]
                                              , smrDate     :: Maybe LT.Text
-                                             , smrSender   :: Maybe Contact
+                                             , smrSender   :: Maybe H.Contact
                                              , smrSubject  :: Maybe LT.Text
-                                             , smrTo       :: [Contact]
+                                             , smrTo       :: [H.Contact]
                                              , smrContents :: [LT.Text]
                                              } deriving (Show, Generic)
 instance ToJSON SendMessageRequest
@@ -77,10 +71,11 @@ server = listMessages
     :<|> sendMessage
 
 sendMessage :: SendMessageRequest -> EitherT (Int, String) IO ()
-sendMessage request@SendMessageRequest{..} = liftIO $ do
+sendMessage _request@SendMessageRequest{..} = liftIO $ do
     -- TODO: put this in some config file
     connection <- liftIO $ connectSMTPSTARTTLS "localhost"
-    liftIO $ sendCommand connection $ AUTH PLAIN smrEmail smrPassword
+    -- TODO: handle authentication failure
+    _result <- liftIO $ sendCommand connection $ AUTH PLAIN smrEmail smrPassword
     sendMail sender receivers mailContent connection
     where
         sender = case smrSender of
@@ -88,32 +83,28 @@ sendMessage request@SendMessageRequest{..} = liftIO $ do
             Just contact -> show contact
         receivers = map show $ smrTo ++ smrCc ++ smrBcc
         mailContent = LB.toStrict $ encodeUtf8 $ LT.append subject body
-        subject = case smrSubject of
-            Nothing -> LT.empty
-            Just text -> text
+        subject = fromMaybe LT.empty smrSubject
         -- TODO: support multi part
-        body = head $ smrContents
+        body = head smrContents
 
 listMailboxes :: ListMailboxRequest -> EitherT (Int, String) IO [MailboxName]
-listMailboxes request@ListMailboxRequest{..} = liftIO $ do
+listMailboxes _request@ListMailboxRequest{..} = liftIO $ do
     connection <- connectIMAPSSL "localhost"
     I.login connection lbrEmail lbrPassword
     mailboxes <- I.list connection
     return $ sort $ map snd mailboxes
 
-listMessages :: ListMessageRequest -> EitherT (Int, String) IO [Message]
-listMessages request@ListMessageRequest{..} = liftIO $ do
+listMessages :: ListMessageRequest -> EitherT (Int, String) IO [H.Message]
+listMessages _request@ListMessageRequest{..} = liftIO $ do
     connection <- connectIMAPSSL "localhost"
     I.login connection lmrEmail lmrPassword
     I.select connection $ LT.unpack lmrMailbox
     uids <- I.search connection [I.ALLs]
     -- TODO: maybe just fetch metadata and leave the body for later
-    messages <- mapM (fetchMessage connection) $ getPage uids messagesPerPage lmrPage
-    return messages
+    mapM (H.fetchMessage connection) $ H.getPage uids H.messagesPerPage lmrPage
 
 mailApi :: Proxy MailApi
 mailApi = Proxy
 
 main :: IO ()
-main = do
-    run 8080 (serve mailApi $ server)
+main = run 8080 (serve mailApi server)
