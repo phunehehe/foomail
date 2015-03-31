@@ -58,19 +58,17 @@ executable foomail
   -- other-extensions:
 
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.7 && <4.8
+  build-depends:       base
+                     , HaskellNet
+                     , HaskellNet-SSL
                      , aeson
+                     , bytestring
+                     , either
+                     , mime
                      , servant-server
                      , text
                      , transformers
                      , warp
-                     , either
-
-                     , HaskellNet     >= 0.3
-                     , HaskellNet-SSL >= 0.2
-                     , bytestring     >= 0.10
-                     , mime           >= 0.4
-                     , mtl            >= 2.1
 
   -- Directories containing source files.
   hs-source-dirs:      src
