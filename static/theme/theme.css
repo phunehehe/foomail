@@ -1,0 +1,28 @@
+body {
+  padding-top: 70px;
+  padding-bottom: 30px;
+}
+
+.theme-showcase > p > .btn {
+  margin: 5px 0;
+}
+
+.theme-showcase .navbar .container {
+  width: auto;
+}
+
+
+.toolbar {
+    margin-bottom: 20px;
+}
+
+
+#message-list table {
+    table-layout: fixed;
+}
+
+#message-list td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
