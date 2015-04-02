@@ -25,8 +25,8 @@ import qualified Helper                        as H
 
 
 type MailApi =
-      "api" :> "message" :> "list" :> S.ReqBody ListMessageRequest :> S.Get [H.Message]
- :<|> "api" :> "mailbox" :> "list" :> S.ReqBody H.Credentials :> S.Get [MailboxName]
+      "api" :> "message" :> "list" :> S.ReqBody ListMessageRequest :> S.Post [H.Message]
+ :<|> "api" :> "mailbox" :> "list" :> S.ReqBody H.Credentials :> S.Post [MailboxName]
  :<|> "api" :> "message" :> "send" :> S.ReqBody SendMessageRequest :> S.Post ()
  :<|> S.Raw
 
