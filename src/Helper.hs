@@ -108,3 +108,8 @@ fetchMessage connection uid = do
 
 messagesPerPage :: Int
 messagesPerPage = 10
+
+-- See https://github.com/jtdaugherty/HaskellNet/issues/34
+readMailboxName :: String -> String
+readMailboxName string | head string == '"' = read string
+                       | otherwise          = string

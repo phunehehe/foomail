@@ -7,7 +7,6 @@ import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad.Trans.Either    (EitherT)
 import           Data.Aeson                    (FromJSON, ToJSON)
 import           Data.ByteString.Lazy          (toStrict)
-import           Data.List                     (sort)
 import           Data.Maybe                    (fromMaybe)
 import qualified Data.Text.Lazy                as LT
 import           Data.Text.Lazy.Encoding       (encodeUtf8)
@@ -25,11 +24,18 @@ import qualified Helper                        as H
 
 
 type MailApi =
-      "api" :> "message" :> "list" :> S.ReqBody ListMessageRequest :> S.Post [H.Message]
- :<|> "api" :> "mailbox" :> "list" :> S.ReqBody H.Credentials :> S.Post [MailboxName]
- :<|> "api" :> "message" :> "send" :> S.ReqBody SendMessageRequest :> S.Post ()
+      "api" :> "mailbox" :> "list"  :> S.ReqBody H.Credentials :> S.Post [MailboxName]
+ :<|> "api" :> "message" :> "count" :> S.ReqBody CountMessageRequest :> S.Post Int
+ :<|> "api" :> "message" :> "list"  :> S.ReqBody ListMessageRequest :> S.Post [H.Message]
+ :<|> "api" :> "message" :> "send"  :> S.ReqBody SendMessageRequest :> S.Post ()
  :<|> S.Raw
 
+
+data CountMessageRequest = CountMessageRequest { cmrCredentials :: H.Credentials
+                                               , cmrMailbox     :: LT.Text
+                                               } deriving (Show, Generic)
+instance ToJSON CountMessageRequest
+instance FromJSON CountMessageRequest
 
 data ListMessageRequest = ListMessageRequest { lmrCredentials :: H.Credentials
                                              , lmrMailbox     :: LT.Text
@@ -52,8 +58,9 @@ instance FromJSON SendMessageRequest
 
 
 server :: S.Server MailApi
-server = listMessages
-    :<|> listMailboxes
+server = listMailboxes
+    :<|> countMessages
+    :<|> listMessages
     :<|> sendMessage
     :<|> S.serveDirectory "./static"
 
@@ -65,11 +72,18 @@ listMessages _request@ListMessageRequest{..} = liftIO $ do
     -- TODO: maybe just fetch metadata and leave the body for later
     mapM (H.fetchMessage connection) $ H.getPage uids lmrPage
 
+countMessages :: CountMessageRequest -> EitherT (Int, String) IO Int
+countMessages _request@CountMessageRequest{..} = liftIO $ do
+    connection <- H.imapConnect cmrCredentials
+    I.select connection $ LT.unpack cmrMailbox
+    uids <- I.search connection [I.ALLs]
+    return $ length uids
+
 listMailboxes :: H.Credentials -> EitherT (Int, String) IO [MailboxName]
 listMailboxes credentials = liftIO $ do
     connection <- H.imapConnect credentials
     mailboxes <- I.list connection
-    return $ sort $ map snd mailboxes
+    return $ map (H.readMailboxName . snd) mailboxes
 
 sendMessage :: SendMessageRequest -> EitherT (Int, String) IO ()
 sendMessage _request@SendMessageRequest{..} = liftIO $ do
