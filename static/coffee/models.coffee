@@ -41,6 +41,7 @@ FM.Mailbox = React.createClass({
 
     getInitialState: -> {
         messageCount: 'Loading...'
+        pagination: ''
     }
 
     componentDidMount: ->
@@ -52,10 +53,12 @@ FM.Mailbox = React.createClass({
             }
             cmrMailbox: @props.name
         }, (data) =>
-            # TODO
-            #if @props.name == @props.currentMailbox
-            #    messageList.setState({ pages: Math.ceil(data / 10) })
-            @setState({messageCount: data})
+            @setState({
+                messageCount: data
+                pagination: FM.Pagination({
+                    total: Math.ceil(data / 10)
+                })
+            })
         )
 
     render: ->
@@ -84,7 +87,9 @@ FM.Mailbox = React.createClass({
                     id: safeID
                     className: 'panel-collapse collapse'
                 },
-                React.DOM.div({className: 'panel-body'}, messageList))
+                React.DOM.div({className: 'panel-body'}, messageList)
+                React.DOM.div({className: 'text-center'}, @state.pagination)
+            )
         )
 })
 
@@ -135,13 +140,6 @@ FM.MessageList = React.createClass({
                 React.DOM.tbody(null,
                     messageNodes
                 )
-            ),
-            React.DOM.div({className: "text-center"},
-                FM.Pagination({
-                    total: @state.pages
-                    currentPage: @state.currentPage
-                    loadingPage: @state.loadingPage
-                })
             )
         );
 
