@@ -17,6 +17,12 @@ body {
 }
 
 
+#mailbox-list .panel-heading .badge {
+    float: right;
+}
+
+
+/*
 #message-list table {
     table-layout: fixed;
 }
@@ -26,3 +32,4 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+*/

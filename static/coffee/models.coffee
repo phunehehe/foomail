@@ -7,7 +7,7 @@ FM.MailboxList = React.createClass({
 
     getInitialState: -> {
         currentMailbox: null
-        mailboxes: []
+        mailboxes: null
     }
 
     componentDidMount: ->
@@ -40,7 +40,7 @@ FM.Mailbox = React.createClass({
     displayName: 'Mailbox'
 
     getInitialState: -> {
-        messageCount: null
+        messageCount: 'Loading...'
     }
 
     componentDidMount: ->
@@ -59,8 +59,15 @@ FM.Mailbox = React.createClass({
         )
 
     render: ->
+
         # FIXME: may result in ambiguous IDs
         safeID = @props.name.replace(/\W/g, '')
+
+        messageList = FM.MessageList({
+            mailbox: @props.name
+            mailboxID: safeID
+        })
+
         return React.DOM.div({className: 'panel panel-default'},
             React.DOM.div({className: 'panel-heading'},
                 React.DOM.h4({className: 'panel-title'},
@@ -77,7 +84,7 @@ FM.Mailbox = React.createClass({
                     id: safeID
                     className: 'panel-collapse collapse'
                 },
-                React.DOM.div({className: 'panel-body'}, 'Loading...'))
+                React.DOM.div({className: 'panel-body'}, messageList))
         )
 })
 
@@ -87,23 +94,33 @@ FM.MessageList = React.createClass({
     displayName: 'MessageList'
 
     getInitialState: -> {
-        currentMailbox: null
         currentPage: null
         loadingPage: null
-        message: null
-        messages: []
-        pages: null
+        messages: null
+        pages: 1
     }
 
-    safeUpdate: (mailbox, page, stateChanges) ->
-        if mailbox == this.state.currentMailbox and page == this.state.currentPage
-            this.setState(stateChanges)
+    componentDidMount: ->
+
+        onShow = =>
+            FM.getJSON('/api/message/list', {
+                lmrCredentials: {
+                    cHost: window.host
+                    cEmail: window.email
+                    cPassword: window.password
+                }
+                lmrMailbox: @props.mailbox
+                lmrPage: 1
+            }, (data) =>
+                @setState({messages: data})
+            )
+
+        $("##{@props.mailboxID}").on('show.bs.collapse', onShow)
 
     renderList: ->
 
-        currentMailbox = this.state.currentMailbox;
-        messageNodes = this.state.messages.map((message) ->
-            Message({mailbox: currentMailbox, message: message})
+        messageNodes = @state.messages.map((message) ->
+            FM.Message({message: message})
         )
 
         return React.DOM.div(null,
@@ -121,39 +138,34 @@ FM.MessageList = React.createClass({
             ),
             React.DOM.div({className: "text-center"},
                 FM.Pagination({
-                    total: this.state.pages,
-                    mailbox: currentMailbox,
-                    currentPage: this.state.currentPage,
-                    loadingPage: this.state.loadingPage
+                    total: @state.pages
+                    currentPage: @state.currentPage
+                    loadingPage: @state.loadingPage
                 })
             )
         );
 
-
-    renderSingle: ->
-        message = this.state.message
-        React.DOM.div(null,
-            React.DOM.dl({className: "dl-horizontal"},
-                React.DOM.dt(null, "Subject"),
-                React.DOM.dd(null, message.message_subject),
-                React.DOM.dt(null, "From"),
-                React.DOM.dd(null, message.message_sender),
-                React.DOM.dt(null, "Date"),
-                React.DOM.dd(null, message.date)
-            ),
-            React.DOM.pre(null,
-                this.state.message.contents[0]
-            )
-        )
-
+    #renderSingle: ->
+    #    message = this.state.message
+    #    React.DOM.div(null,
+    #        React.DOM.dl({className: "dl-horizontal"},
+    #            React.DOM.dt(null, "Subject"),
+    #            React.DOM.dd(null, message.message_subject),
+    #            React.DOM.dt(null, "From"),
+    #            React.DOM.dd(null, message.message_sender),
+    #            React.DOM.dt(null, "Date"),
+    #            React.DOM.dd(null, message.date)
+    #        ),
+    #        React.DOM.pre(null,
+    #            this.state.message.contents[0]
+    #        )
+    #    )
 
     render: ->
-        if this.state.message
-            return this.renderSingle()
-        else if this.state.messages
-            return this.renderList()
+        if @state.messages
+            return @renderList()
         else
-            return React.DOM.div(null, "Loading...")
+            return React.DOM.div({}, "Loading...")
 })
 
 
