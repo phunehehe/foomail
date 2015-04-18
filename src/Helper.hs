@@ -5,17 +5,22 @@
 
 module Helper where
 
+import qualified Codec.MIME.Type                    as M
+import qualified Data.ByteString.Lazy               as B
+import qualified Data.Map                           as Map
+import qualified Data.Text.Lazy                     as T
+import qualified Network.HaskellNet.IMAP            as I
+
 import           Codec.MIME.Parse                   (parseMIMEMessage)
-import qualified Codec.MIME.Type                    as CT
 import           Data.Aeson                         (FromJSON, ToJSON)
-import qualified Data.ByteString.Lazy               as LB
+import           Data.IORef                         (IORef, readIORef,
+                                                     writeIORef)
 import           Data.List                          (find)
 import           Data.Maybe                         (mapMaybe)
-import qualified Data.Text.Lazy                     as LT
+import           Data.Pool                          (Pool, createPool, withResource)
 import           Data.Text.Lazy.Encoding            (decodeUtf8)
 import           GHC.Generics                       (Generic)
 import           Network.HaskellNet.Auth            (Password, UserName)
-import qualified Network.HaskellNet.IMAP            as I
 import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
 import           Network.HaskellNet.IMAP.SSL        (connectIMAPSSL)
 import           Network.HaskellNet.IMAP.Types      (UID)
@@ -23,31 +28,31 @@ import           Text.Printf                        (printf)
 import           Text.Read                          (readMaybe)
 
 
-data Contact = Contact { cName    :: Maybe LT.Text
-                       , cAddress :: LT.Text
+data Contact = Contact { cName    :: Maybe T.Text
+                       , cAddress :: T.Text
                        } deriving (Generic)
 instance ToJSON Contact
 instance FromJSON Contact
 instance Show Contact where
-    show (Contact Nothing address) = LT.unpack address
+    show (Contact Nothing address) = T.unpack address
     show (Contact (Just name) address) =
-        printf "%s <%s>" (LT.unpack name) $ LT.unpack address
+        printf "%s <%s>" (T.unpack name) $ T.unpack address
 instance Read Contact where
     -- TODO: maybe add some more validation
     readsPrec _ string = case break (== '<') string of
-        (_, []) -> [(Contact Nothing $ LT.pack string, "")]
+        (_, []) -> [(Contact Nothing $ T.pack string, "")]
         (name, address) -> case break (== '>') address of
-            (address', ">") -> [(Contact (Just $ LT.pack name) $ LT.pack address', "")]
+            (address', ">") -> [(Contact (Just $ T.pack name) $ T.pack address', "")]
             _ -> []
 
 data Message = Message { mUid      :: Maybe UID
                        , mCc       :: [Contact]
                        , mBcc      :: [Contact]
-                       , mDate     :: Maybe LT.Text
+                       , mDate     :: Maybe T.Text
                        , mSender   :: Maybe Contact
-                       , mSubject  :: Maybe LT.Text
+                       , mSubject  :: Maybe T.Text
                        , mTo       :: [Contact]
-                       , mContents :: [LT.Text]
+                       , mContents :: [T.Text]
                        } deriving (Show, Generic)
 instance ToJSON Message
 instance FromJSON Message
@@ -60,6 +65,23 @@ instance ToJSON Credentials
 instance FromJSON Credentials
 
 
+getConnection :: IORef (Map.Map String (Pool IMAPConnection)) -> Credentials -> IO (Pool IMAPConnection)
+getConnection poolsRef credentials = do
+    pools <- readIORef poolsRef
+    case Map.lookup key pools of
+        Nothing -> do
+            pool <- createPool (imapConnect credentials) I.logout 1 1000 10
+            writeIORef poolsRef $ Map.insert key pool pools
+            return pool
+        Just pool -> return pool
+    where
+        key = "imap" ++ show credentials
+
+doImap :: IORef (Map.Map String (Pool IMAPConnection)) -> Credentials -> (IMAPConnection -> IO a) -> IO a
+doImap poolsRef credentials f = do
+    pool <- getConnection poolsRef credentials
+    withResource pool f
+
 imapConnect :: Credentials -> IO IMAPConnection
 imapConnect _credentials@Credentials{..} = do
     connection <- connectIMAPSSL cHost
@@ -71,23 +93,23 @@ getPage :: [a] -> Int -> [a]
 getPage items pageNumber = take messagesPerPage $ drop before items
     where before = messagesPerPage * (pageNumber - 1)
 
-mimeContents :: CT.MIMEValue -> [LT.Text]
+mimeContents :: M.MIMEValue -> [T.Text]
 mimeContents message =
-    case CT.mime_val_content message of
-        CT.Single content -> [LT.fromStrict content]
-        CT.Multi subValues -> concatMap mimeContents subValues
+    case M.mime_val_content message of
+        M.Single content -> [T.fromStrict content]
+        M.Multi subValues -> concatMap mimeContents subValues
 
-parseContacts :: Maybe LT.Text -> [Contact]
-parseContacts = maybe [] (mapMaybe (parseContact . Just) . LT.splitOn ",")
+parseContacts :: Maybe T.Text -> [Contact]
+parseContacts = maybe [] (mapMaybe (parseContact . Just) . T.splitOn ",")
 
-headerValue :: [CT.MIMEParam] -> LT.Text -> Maybe LT.Text
-headerValue headers headerName = fmap (LT.fromStrict . CT.paramValue) header
-    where header = find (\h -> CT.paramName h == LT.toStrict headerName) headers
+headerValue :: [M.MIMEParam] -> T.Text -> Maybe T.Text
+headerValue headers headerName = fmap (T.fromStrict . M.paramValue) header
+    where header = find (\h -> M.paramName h == T.toStrict headerName) headers
 
-parseContact :: Maybe LT.Text -> Maybe Contact
-parseContact = maybe Nothing $ readMaybe . LT.unpack
+parseContact :: Maybe T.Text -> Maybe Contact
+parseContact = maybe Nothing $ readMaybe . T.unpack
 
-parseMessage :: UID -> LT.Text -> Message
+parseMessage :: UID -> T.Text -> Message
 parseMessage uid message = Message { mUid = Just uid
                                    , mCc = parseContacts $ headerValue headers "cc"
                                    , mBcc = parseContacts $ headerValue headers "bcc"
@@ -98,18 +120,13 @@ parseMessage uid message = Message { mUid = Just uid
                                    , mContents = mimeContents mimeValue
                                    }
     where
-        mimeValue = parseMIMEMessage $ LT.toStrict message
-        headers = CT.mime_val_headers mimeValue
+        mimeValue = parseMIMEMessage $ T.toStrict message
+        headers = M.mime_val_headers mimeValue
 
 fetchMessage :: IMAPConnection -> UID -> IO Message
 fetchMessage connection uid = do
     message <- I.fetch connection uid
-    return $ parseMessage uid $ decodeUtf8 $ LB.fromStrict message
+    return $ parseMessage uid $ decodeUtf8 $ B.fromStrict message
 
 messagesPerPage :: Int
 messagesPerPage = 10
-
--- See https://github.com/jtdaugherty/HaskellNet/issues/34
-readMailboxName :: String -> String
-readMailboxName string | head string == '"' = read string
-                       | otherwise          = string

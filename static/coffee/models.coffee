@@ -11,7 +11,7 @@ FM.MailboxList = React.createClass({
     }
 
     componentDidMount: ->
-        FM.getJSON('/api/mailbox/list', {
+        FM.postJSON('/api/mailbox/list', {
             cHost: window.host
             cEmail: window.email
             cPassword: window.password
@@ -45,7 +45,7 @@ FM.Mailbox = React.createClass({
     }
 
     componentDidMount: ->
-        FM.getJSON('/api/message/count', {
+        FM.postJSON('/api/message/count', {
             cmrCredentials: {
                 cHost: window.host
                 cEmail: window.email
@@ -108,7 +108,7 @@ FM.MessageList = React.createClass({
     componentDidMount: ->
 
         onShow = =>
-            FM.getJSON('/api/message/list', {
+            FM.postJSON('/api/message/list', {
                 lmrCredentials: {
                     cHost: window.host
                     cEmail: window.email

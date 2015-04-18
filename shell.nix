@@ -1,8 +1,8 @@
 with (import <nixpkgs> {}).pkgs;
 let pkg = haskellngPackages.callPackage
-            ({ mkDerivation, aeson, base, bytestring, either, HaskellNet
-             , HaskellNet-SSL, mime, servant-server, stdenv, text, transformers
-             , warp
+            ({ mkDerivation, aeson, base, bytestring, containers, either
+             , HaskellNet, HaskellNet-SSL, mime, resource-pool, servant-server
+             , stdenv, text, transformers, warp
              }:
              mkDerivation {
                pname = "foomail";
@@ -11,8 +11,8 @@ let pkg = haskellngPackages.callPackage
                isLibrary = false;
                isExecutable = true;
                buildDepends = [
-                 aeson base bytestring either HaskellNet HaskellNet-SSL mime
-                 servant-server text transformers warp
+                 aeson base bytestring containers either HaskellNet HaskellNet-SSL
+                 mime resource-pool servant-server text transformers warp
                ];
                license = stdenv.lib.licenses.mpl20;
              }) {};

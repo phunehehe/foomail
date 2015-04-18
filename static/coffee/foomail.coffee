@@ -21,7 +21,7 @@ fetchMailboxes = ->
     callback = (data) -> fooMail.setState({
         mailboxes: data
     })
-    FM.getJSON('/api/mailbox/list', {
+    FM.postJSON('/api/mailbox/list', {
         cHost: window.host
         cEmail: window.email
         cPassword: window.password
@@ -29,7 +29,7 @@ fetchMailboxes = ->
 
 
 fetchMessages = (mailbox, page, callback) ->
-    FM.getJSON('/api/message/list', {
+    FM.postJSON('/api/message/list', {
         lmrCredentials: {
             cHost: window.host
             cEmail: window.email
