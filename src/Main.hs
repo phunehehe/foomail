@@ -77,7 +77,7 @@ listMailboxes poolsRef credentials = liftIO $ H.doImap poolsRef credentials getM
             return $ map snd mailboxes
 
 countMessages :: IORef (M.Map String (Pool IMAPConnection)) -> CountMessageRequest -> EitherT (Int, String) IO Int
-countMessages poolsRef _request@CountMessageRequest{..} = liftIO $ H.doImap poolsRef cmrCredentials getCount
+countMessages poolsRef _r@CountMessageRequest{..} = liftIO $ H.doImap poolsRef cmrCredentials getCount
     where
         getCount connection = do
             I.select connection $ T.unpack cmrMailbox
@@ -85,7 +85,7 @@ countMessages poolsRef _request@CountMessageRequest{..} = liftIO $ H.doImap pool
             return $ length uids
 
 listMessages :: IORef (M.Map String (Pool IMAPConnection)) -> ListMessageRequest -> EitherT (Int, String) IO [H.Message]
-listMessages poolsRef _request@ListMessageRequest{..} = liftIO $ H.doImap poolsRef lmrCredentials getMessages
+listMessages poolsRef _r@ListMessageRequest{..} = liftIO $ H.doImap poolsRef lmrCredentials getMessages
     where
         getMessages connection = do
             I.select connection $ T.unpack lmrMailbox
@@ -94,7 +94,7 @@ listMessages poolsRef _request@ListMessageRequest{..} = liftIO $ H.doImap poolsR
             mapM (H.fetchMessage connection) $ H.getPage uids lmrPage
 
 sendMessage :: SendMessageRequest -> EitherT (Int, String) IO ()
-sendMessage _request@SendMessageRequest{..} = liftIO $ do
+sendMessage _r@SendMessageRequest{..} = liftIO $ do
     -- TODO: handle authentication failure
     connection <- smtpConnect smrCredentials
     SMTP.sendMail sender receivers mailContent connection
@@ -105,10 +105,10 @@ sendMessage _request@SendMessageRequest{..} = liftIO $ do
         subject = fromMaybe T.empty smrSubject
         -- TODO: support multi part
         body = head smrContents
-        smtpConnect _credentials@H.Credentials{..} = do
+        smtpConnect _c@H.Credentials{..} = do
             connection <- connectSMTPSTARTTLS cHost
             -- TODO: handle authentication failure
-            _result <- SMTP.sendCommand connection $ SMTP.AUTH PLAIN cEmail cPassword
+            _r <- SMTP.sendCommand connection $ SMTP.AUTH PLAIN cEmail cPassword
             return connection
 
 mailApi :: S.Proxy MailApi

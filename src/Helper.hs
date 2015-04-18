@@ -17,7 +17,8 @@ import           Data.IORef                         (IORef, readIORef,
                                                      writeIORef)
 import           Data.List                          (find)
 import           Data.Maybe                         (mapMaybe)
-import           Data.Pool                          (Pool, createPool, withResource)
+import           Data.Pool                          (Pool, createPool,
+                                                     withResource)
 import           Data.Text.Lazy.Encoding            (decodeUtf8)
 import           GHC.Generics                       (Generic)
 import           Network.HaskellNet.Auth            (Password, UserName)
@@ -68,13 +69,12 @@ instance FromJSON Credentials
 getConnection :: IORef (Map.Map String (Pool IMAPConnection)) -> Credentials -> IO (Pool IMAPConnection)
 getConnection poolsRef credentials = do
     pools <- readIORef poolsRef
-    case Map.lookup key pools of
-        Nothing -> do
-            pool <- createPool (imapConnect credentials) I.logout 1 1000 10
+    maybe (makePool pools) return $ Map.lookup key pools
+    where
+        makePool pools = do
+            pool <- createPool (imapLogin credentials) I.logout 1 1000 10
             writeIORef poolsRef $ Map.insert key pool pools
             return pool
-        Just pool -> return pool
-    where
         key = "imap" ++ show credentials
 
 doImap :: IORef (Map.Map String (Pool IMAPConnection)) -> Credentials -> (IMAPConnection -> IO a) -> IO a
@@ -82,8 +82,8 @@ doImap poolsRef credentials f = do
     pool <- getConnection poolsRef credentials
     withResource pool f
 
-imapConnect :: Credentials -> IO IMAPConnection
-imapConnect _credentials@Credentials{..} = do
+imapLogin :: Credentials -> IO IMAPConnection
+imapLogin _c@Credentials{..} = do
     connection <- connectIMAPSSL cHost
     I.login connection cEmail cPassword
     -- TODO: handle authentication failure
