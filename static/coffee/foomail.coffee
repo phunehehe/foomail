@@ -1,3 +1,8 @@
+window.host = ''
+window.email = ''
+window.password = ''
+
+
 mailboxList = React.renderComponent(
     FM.MailboxList(),
     document.getElementById('mailbox-list')

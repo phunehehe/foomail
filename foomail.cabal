@@ -66,6 +66,7 @@ executable foomail
                      , containers
                      , either
                      , mime
+                     , record
                      , resource-pool
                      , servant-server
                      , text
