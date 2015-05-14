@@ -1,8 +1,8 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TypeOperators     #-}
 
 import qualified Data.Map                           as M
 import qualified Data.Text.Lazy                     as T
@@ -71,45 +71,45 @@ server poolsRef =
  :<|> S.serveDirectory "./static"
 
 listMailboxes :: IORef (M.Map String (Pool IMAPConnection)) -> H.Credentials -> EitherT S.ServantErr IO [MailboxName]
-listMailboxes _ _ = liftIO $ return ["First Mailbox", "Second Mailbox", "Third Mailbox"]
---listMailboxes poolsRef credentials = liftIO $ H.doImap poolsRef credentials getMailboxes
---    where
---        getMailboxes connection = do
---            mailboxes <- I.list connection
---            return $ map snd mailboxes
+--listMailboxes _ _ = liftIO $ return ["First Mailbox", "Second Mailbox", "Third Mailbox"]
+listMailboxes poolsRef credentials = liftIO $ H.doImap poolsRef credentials getMailboxes
+    where
+        getMailboxes connection = do
+            mailboxes <- I.list connection
+            return $ map snd mailboxes
 
 countMessages :: IORef (M.Map String (Pool IMAPConnection)) -> CountMessageRequest -> EitherT S.ServantErr IO Int
-countMessages _ _ = liftIO $ return 42
---countMessages poolsRef _r@CountMessageRequest{..} = liftIO $ H.doImap poolsRef cmrCredentials getCount
---    where
---        getCount connection = do
---            I.select connection $ T.unpack cmrMailbox
---            uids <- I.search connection [I.ALLs]
---            return $ length uids
+--countMessages _ _ = liftIO $ return 42
+countMessages poolsRef _r@CountMessageRequest{..} = liftIO $ H.doImap poolsRef cmrCredentials getCount
+    where
+        getCount connection = do
+            I.select connection $ T.unpack cmrMailbox
+            uids <- I.search connection [I.ALLs]
+            return $ length uids
 
 listMessages :: IORef (M.Map String (Pool IMAPConnection)) -> ListMessageRequest -> EitherT S.ServantErr IO [H.Message]
-listMessages _ _ = liftIO $ return
-    [ H.Message
-        { H.mUid = Nothing
-        , H.mCc = []
-        , H.mBcc = []
-        , H.mDate = Just "some date"
-        , H.mSender = Just H.Contact
-            { H.cName = Nothing
-            , H.cAddress = "some address"
-            }
-        , H.mSubject = Just "some subject"
-        , H.mTo = []
-        , H.mContents = ["some content"]
-        }
-    ]
---listMessages poolsRef _r@ListMessageRequest{..} = liftIO $ H.doImap poolsRef lmrCredentials getMessages
---    where
---        getMessages connection = do
---            I.select connection $ T.unpack lmrMailbox
---            uids <- I.search connection [I.ALLs]
---            -- TODO: maybe just fetch metadata and leave the body for later
---            mapM (H.fetchMessage connection) $ H.getPage uids lmrPage
+--listMessages _ _ = liftIO $ return
+--    [ H.Message
+--        { H.mUid = Nothing
+--        , H.mCc = []
+--        , H.mBcc = []
+--        , H.mDate = Just "some date"
+--        , H.mSender = Just H.Contact
+--            { H.cName = Nothing
+--            , H.cAddress = "some address"
+--            }
+--        , H.mSubject = Just "some subject"
+--        , H.mTo = []
+--        , H.mContents = ["some content"]
+--        }
+--    ]
+listMessages poolsRef _r@ListMessageRequest{..} = liftIO $ H.doImap poolsRef lmrCredentials getMessages
+    where
+        getMessages connection = do
+            I.select connection $ T.unpack lmrMailbox
+            uids <- I.search connection [I.ALLs]
+            -- TODO: maybe just fetch metadata and leave the body for later
+            mapM (H.fetchMessage connection) $ H.getPage uids lmrPage
 
 sendMessage :: SendMessageRequest -> EitherT S.ServantErr IO ()
 sendMessage _r@SendMessageRequest{..} = liftIO $ do

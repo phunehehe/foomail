@@ -92,8 +92,12 @@ FM.Mailbox = React.createClass({
             totalItems: @state.messageCount
         })
 
-        messageNodes = @state.messages.map((message) -> FM.Message({
-            key: message
+        messageNodes = @state.messages.map((message) => FM.Message({
+            key: message.mUid
+            subject: message.mSubject
+            sender: message.mSender
+            date: message.mDate
+            mailbox: @safeID
         }))
 
         messageList = if @state.messages
@@ -160,12 +164,12 @@ FM.Message = React.createClass({
         React.DOM.tr(null,
             React.DOM.td(null, React.DOM.a(
                 {
-                    href: FM.makeUrl('view', @props.mailbox, @props.key.mUid)
+                    href: FM.makeUrl(@props.mailbox, @props.key)
                 },
-                @props.key.mSubject
+                @props.subject
             )),
-            React.DOM.td(null, @props.key.mSender),
-            React.DOM.td(null, @props.key.mDate)
+            React.DOM.td(null, @props.sender),
+            React.DOM.td(null, @props.date)
         )
 });
 
