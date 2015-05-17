@@ -6,7 +6,7 @@ FM.MailboxList = React.createClass({
     displayName: 'MailboxList'
 
     getInitialState: -> {
-        mailboxes: []
+        mailboxes: null
     }
 
     componentDidMount: ->
@@ -14,7 +14,9 @@ FM.MailboxList = React.createClass({
             cHost: window.host
             cEmail: window.email
             cPassword: window.password
-        }, (data) => @setState({mailboxes: data}))
+        }, (data) => @setState({
+            mailboxes: data
+        }))
 
     render: ->
 
@@ -38,7 +40,7 @@ FM.Mailbox = React.createClass({
     getInitialState: -> {
         messageCount: null
         currentPage: 1
-        messages: []
+        messages: null
     }
 
     loadMessages: ->
@@ -50,9 +52,9 @@ FM.Mailbox = React.createClass({
             }
             lmrMailbox: @props.key
             lmrPage: @state.currentPage
-        }, (data) =>
-            @setState({messages: data})
-        )
+        }, (data) => @setState({
+            messages: data
+        }))
 
     componentDidMount: ->
 
@@ -68,11 +70,9 @@ FM.Mailbox = React.createClass({
                 cPassword: window.password
             }
             cmrMailbox: @props.key
-        }, (data) =>
-            @setState({
+        }, (data) => @setState({
                 messageCount: data
-            })
-        )
+        }))
 
     handleClick: (page) ->
         @setState({
@@ -88,19 +88,19 @@ FM.Mailbox = React.createClass({
             ''
 
         pager = FM.Pager({
+            currentPage: @state.currentPage
             handleClick: @handleClick
             totalItems: @state.messageCount
         })
 
-        messageNodes = @state.messages.map((message) => FM.Message({
-            key: message.mUid
-            subject: message.mSubject
-            sender: message.mSender
-            date: message.mDate
-            mailbox: @safeID
-        }))
-
         messageList = if @state.messages
+            messageNodes = @state.messages.map((message) => FM.Message({
+                key: message.mUid
+                subject: message.mSubject
+                sender: message.mSender
+                date: message.mDate
+                mailbox: @safeID
+            }))
             React.DOM.div(null,
                 React.DOM.table({className: "table table-striped table-hover"},
                     React.DOM.thead(null,
@@ -118,18 +118,15 @@ FM.Mailbox = React.createClass({
         return React.DOM.div({className: 'panel panel-default'},
             React.DOM.div({className: 'panel-heading'},
                 React.DOM.h4({className: 'panel-title'},
-                    React.DOM.a(
-                        {
-                            'data-toggle': 'collapse'
-                            href: "##{@safeID}"
-                        },
-                        @props.key,
-                        badge)))
+                    React.DOM.a({
+                        'data-toggle': 'collapse'
+                        href: "##{@safeID}"
+                    }, @props.key, badge)))
             React.DOM.div(
                 {
                     id: @safeID
                     className: 'panel-collapse collapse'
-                },
+                }
                 React.DOM.div({className: 'panel-body'}, messageList)
                 React.DOM.div({className: 'text-center'}, pager)
             )
@@ -162,12 +159,9 @@ FM.Message = React.createClass({
     displayName: 'Message'
     render: ->
         React.DOM.tr(null,
-            React.DOM.td(null, React.DOM.a(
-                {
-                    href: FM.makeUrl(@props.mailbox, @props.key)
-                },
-                @props.subject
-            )),
+            React.DOM.td(null, React.DOM.a({
+                href: FM.makeUrl(@props.mailbox, @props.key)
+            }, @props.subject)),
             React.DOM.td(null, @props.sender),
             React.DOM.td(null, @props.date)
         )
@@ -183,7 +177,7 @@ FM.PagerItem = React.createClass({
 
     render: ->
         # TODO: loading
-        if @props.current == @props.target
+        if @props.currentPage == @props.target
             React.DOM.li({className: "active"}, React.DOM.span({}, @props.text))
         else if 0 < @props.target <= @props.total
             React.DOM.li({onClick: @handleClick}, React.DOM.span({}, @props.text))
@@ -196,22 +190,18 @@ FM.Pager = React.createClass({
 
     displayName: 'Pager'
 
-    getInitialState: -> {
-        current: 1
-    }
-
     render: ->
         totalPages = Math.ceil(@props.totalItems / 10)
         makePagerItem = (target, text=target) => FM.PagerItem({
             key: target
-            current: @state.current
+            currentPage: @props.currentPage
             target: target
             total: totalPages
             handleClick: @props.handleClick
-            text
+            text: text
         })
-        previous = makePagerItem(@state.current - 1, "«")
-        next = makePagerItem(@state.current + 1, "»")
+        previous = makePagerItem(@props.currentPage - 1, "«")
+        next = makePagerItem(@props.currentPage + 1, "»")
         # TODO: handle a large number of pages
         items = (makePagerItem(i) for i in [1..totalPages])
         return React.DOM.ul({className: "pagination"}, previous, items, next)
