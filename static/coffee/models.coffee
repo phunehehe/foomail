@@ -9,14 +9,13 @@ FM.MailboxList = React.createClass({
         mailboxes: null
     }
 
-    componentDidMount: ->
-        FM.postJSON('/api/mailbox/list', {
-            cHost: window.host
-            cEmail: window.email
-            cPassword: window.password
-        }, (data) => @setState({
-            mailboxes: data
-        }))
+    componentDidMount: -> FM.postJSON('/api/mailbox/list', {
+        cHost: window.host
+        cEmail: window.email
+        cPassword: window.password
+    }, (data) => @setState({
+        mailboxes: data
+    }))
 
     render: ->
 
@@ -27,9 +26,7 @@ FM.MailboxList = React.createClass({
             key: mailbox
         }))
 
-        return React.DOM.div({
-            className: 'panel-group'
-        }, mailboxNodes)
+        return React.DOM.div({className: 'panel-group'}, mailboxNodes)
 })
 
 
@@ -43,18 +40,17 @@ FM.Mailbox = React.createClass({
         messages: null
     }
 
-    loadMessages: ->
-        FM.postJSON('/api/message/list', {
-            lmrCredentials: {
-                cHost: window.host
-                cEmail: window.email
-                cPassword: window.password
-            }
-            lmrMailbox: @props.key
-            lmrPage: @state.currentPage
-        }, (data) => @setState({
-            messages: data
-        }))
+    loadMessages: -> FM.postJSON('/api/message/list', {
+        lmrCredentials: {
+            cHost: window.host
+            cEmail: window.email
+            cPassword: window.password
+        }
+        lmrMailbox: @props.key
+        lmrPage: @state.currentPage
+    }, (data) => @setState({
+        messages: data
+    }))
 
     componentDidMount: ->
 
@@ -119,11 +115,14 @@ FM.Mailbox = React.createClass({
         else
             ''
 
-        pager = FM.Pager({
-            currentPage: @state.currentPage
-            handleClick: @handleClick
-            totalItems: @state.messageCount
-        })
+        pager = if @state.messageCount
+            FM.Pager({
+                currentPage: @state.currentPage
+                handleClick: @handleClick
+                totalItems: @state.messageCount
+            })
+        else
+            'Loading...'
 
         messageList = if @state.messages
             messageNodes = @state.messages.map((message) => @renderMessage(
@@ -133,19 +132,17 @@ FM.Mailbox = React.createClass({
                 message.mDate
                 message.mContents
             ))
-            React.DOM.div({className: 'message-list'}
-                React.DOM.table({className: 'table table-striped table-hover'}
-                    React.DOM.thead(null
-                        React.DOM.tr(null
-                            React.DOM.th(null, 'Subject')
-                            React.DOM.th(null, 'From')
-                            React.DOM.th(null, 'Date')
-                        )
+            React.DOM.table({className: 'message-list table table-striped table-hover'}
+                React.DOM.thead(null
+                    React.DOM.tr(null
+                        React.DOM.th(null, 'Subject')
+                        React.DOM.th(null, 'From')
+                        React.DOM.th(null, 'Date')
                     )
-                    React.DOM.tbody(null, messageNodes)
                 )
+                React.DOM.tbody(null, messageNodes)
             )
-        else React.DOM.div({}, 'Loading...')
+        else React.DOM.div(null, 'Loading...')
 
         return React.DOM.div({className: 'panel panel-default'}
             React.DOM.div({className: 'panel-heading'}
@@ -176,11 +173,11 @@ FM.PagerItem = React.createClass({
     render: ->
         # TODO: loading
         if @props.currentPage == @props.target
-            React.DOM.li({className: 'active'}, React.DOM.span({}, @props.text))
+            React.DOM.li({className: 'active'}, React.DOM.span(null, @props.text))
         else if 0 < @props.target <= @props.total
-            React.DOM.li({onClick: @handleClick}, React.DOM.span({}, @props.text))
+            React.DOM.li({onClick: @handleClick}, React.DOM.span(null, @props.text))
         else
-            React.DOM.li({className: 'disabled'}, React.DOM.span({}, @props.text))
+            React.DOM.li({className: 'disabled'}, React.DOM.span(null, @props.text))
 })
 
 
@@ -210,7 +207,8 @@ FM.Alert = React.createClass({
     displayName: 'Alert'
     render: ->
         if @props.code && @props.message
-            return React.DOM.div({className: 'alert alert-danger', role: 'alert'}
-                React.DOM.strong(null, @props.code), ': ', @props.message
-            );
+            return React.DOM.div({
+                className: 'alert alert-danger'
+                role: 'alert'
+            }, React.DOM.strong(null, @props.code), ': ', @props.message)
 })

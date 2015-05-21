@@ -28,6 +28,6 @@ td.collapse.in {
 
 
 /* Until we have a better way to handle `pre` */
-.message-list table {
+.message-list {
     table-layout: fixed;
 }
