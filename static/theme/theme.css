@@ -22,14 +22,12 @@ body {
 }
 
 
-/*
-#message-list table {
-    table-layout: fixed;
+td.collapse.in {
+    display: table-cell;
 }
 
-#message-list td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+/* Until we have a better way to handle `pre` */
+.message-list table {
+    table-layout: fixed;
 }
-*/

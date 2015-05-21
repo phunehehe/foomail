@@ -23,7 +23,7 @@ FM.MailboxList = React.createClass({
         if !@state.mailboxes
             return React.DOM.div(null, 'Loading...')
 
-        mailboxNodes = @state.mailboxes.map((mailbox) => FM.Mailbox({
+        mailboxNodes = @state.mailboxes.map((mailbox) -> FM.Mailbox({
             key: mailbox
         }))
 
@@ -58,8 +58,7 @@ FM.Mailbox = React.createClass({
 
     componentDidMount: ->
 
-        # FIXME: may result in ambiguous IDs
-        @safeID = @props.key.replace(/\W/g, '')
+        @safeID = FM.makeId(@props.key)
 
         $(document).on('show.bs.collapse', "##{@safeID}", @loadMessages)
 
@@ -82,31 +81,36 @@ FM.Mailbox = React.createClass({
 
 
     # This contains more than 1 element. It doesn't fit into a ReactJS class.
-    renderMessage: (uid, subject, sender, date, contents) -> [
-        React.DOM.tr(
-            null
-            React.DOM.td(null, React.DOM.a({
-                href: FM.makeUrl(@safeID, uid)
-            }, subject))
-            React.DOM.td(null, sender)
-            React.DOM.td(null, date)
-        )
-        React.DOM.tr(
-            null
-            React.DOM.td(
-                {colSpan: 3}
-                React.DOM.dl({className: 'dl-horizontal'}
-                    React.DOM.dt(null, 'Subject')
-                    React.DOM.dd(null, subject)
-                    React.DOM.dt(null, 'From')
-                    React.DOM.dd(null, sender)
-                    React.DOM.dt(null, 'Date')
-                    React.DOM.dd(null, date)
-                )
-                React.DOM.pre(null, contents[0])
+    renderMessage: (uid, subject, sender, date, contents) ->
+        url = FM.makeId(@safeID, uid)
+        return [
+            React.DOM.tr(null
+                React.DOM.td(null, React.DOM.a({
+                    'data-toggle': 'collapse'
+                    href: "##{url}"
+                }, subject))
+                React.DOM.td(null, sender)
+                React.DOM.td(null, date)
             )
-        )
-    ]
+            React.DOM.tr(null
+                React.DOM.td(
+                    {
+                        id: url
+                        className: 'collapse'
+                        colSpan: 3
+                    }
+                    React.DOM.dl({className: 'dl-horizontal'}
+                        React.DOM.dt(null, 'Subject')
+                        React.DOM.dd(null, subject)
+                        React.DOM.dt(null, 'From')
+                        React.DOM.dd(null, sender)
+                        React.DOM.dt(null, 'Date')
+                        React.DOM.dd(null, date)
+                    )
+                    React.DOM.pre(null, contents[0])
+                )
+            )
+        ]
 
     render: ->
 
@@ -129,7 +133,7 @@ FM.Mailbox = React.createClass({
                 message.mDate
                 message.mContents
             ))
-            React.DOM.div(null
+            React.DOM.div({className: 'message-list'}
                 React.DOM.table({className: 'table table-striped table-hover'}
                     React.DOM.thead(null
                         React.DOM.tr(null
