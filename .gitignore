@@ -1,2 +1,5 @@
+/default.nix
 /dist
+/foomail.cabal
+/shell.nix
 /static/coffee/*.js

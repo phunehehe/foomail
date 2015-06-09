@@ -1,0 +1,32 @@
+name: foomail
+version: 0.1.0.0
+license: MPL-2.0
+author: Hoang Xuan Phu
+maintainer: phuhimself@phunehehe.net
+category: Network
+
+github: phunehehe/foomail
+
+ghc-options: -Wall
+
+dependencies:
+  - base
+  - HaskellNet
+  - HaskellNet-SSL
+  - aeson
+  - bytestring
+  - containers
+  - either
+  - mime
+  - record
+  - resource-pool
+  - servant-server
+  - text
+  - transformers
+  - warp
+
+source-dirs: src
+
+executables:
+  foomail:
+    main: Main.hs
