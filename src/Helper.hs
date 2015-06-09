@@ -25,6 +25,7 @@ import           Network.HaskellNet.Auth            (Password, UserName)
 import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
 import           Network.HaskellNet.IMAP.SSL        (connectIMAPSSL)
 import           Network.HaskellNet.IMAP.Types      (UID)
+import           Network.HaskellNet.IMAP.Types      (MailboxName)
 import           Text.Printf                        (printf)
 import           Text.Read                          (readMaybe)
 
@@ -130,3 +131,6 @@ fetchMessage connection uid = do
 
 messagesPerPage :: Int
 messagesPerPage = 10
+
+filterMailboxes :: [([I.Attribute], MailboxName)] -> [MailboxName]
+filterMailboxes = map snd . filter (notElem I.Noselect . fst)

@@ -4,10 +4,9 @@ license: MPL-2.0
 author: Hoang Xuan Phu
 maintainer: phuhimself@phunehehe.net
 category: Network
-
 github: phunehehe/foomail
-
 ghc-options: -Wall
+source-dirs: src
 
 dependencies:
   - base
@@ -25,8 +24,14 @@ dependencies:
   - transformers
   - warp
 
-source-dirs: src
-
 executables:
   foomail:
     main: Main.hs
+
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs:
+      - test
+    dependencies:
+      - hspec

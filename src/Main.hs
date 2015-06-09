@@ -76,7 +76,7 @@ listMailboxes poolsRef credentials = liftIO $ H.doImap poolsRef credentials getM
     where
         getMailboxes connection = do
             mailboxes <- I.list connection
-            return $ map snd mailboxes
+            return $ H.filterMailboxes mailboxes
 
 countMessages :: IORef (M.Map String (Pool IMAPConnection)) -> CountMessageRequest -> EitherT S.ServantErr IO Int
 --countMessages _ _ = liftIO $ return 42
