@@ -23,6 +23,7 @@ dependencies:
   - text
   - transformers
   - warp
+  - time
 
 executables:
   foomail:
