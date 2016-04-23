@@ -6,7 +6,7 @@ FM = window.FM
 
 
 relogin = (data) ->
-    React.renderComponent(
+    ReactDOM.render(
         Alert({code: data.code, message: data.message}),
         document.getElementById('login-alert')
     )
@@ -105,7 +105,7 @@ $('#login-modal').on 'hide.bs.modal', ->
     FM.host = $('#login-host').val()
     FM.email = $('#login-email').val()
     FM.password = $('#login-password').val()
-    FM.mailboxList = React.renderComponent(
+    FM.mailboxList = ReactDOM.render(
         FM.MailboxList(),
         document.getElementById('mailbox-list')
     )

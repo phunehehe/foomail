@@ -2,7 +2,11 @@ window.FM = window.FM || {}
 FM = window.FM
 
 
-FM.MailboxList = React.createClass({
+createReact = (arg) -> React.createFactory(React.createClass(arg))
+showContact = (contact) -> "#{contact.cName} <#{contact.cAddress}>"
+
+
+FM.MailboxList = createReact
 
     displayName: 'MailboxList'
 
@@ -24,14 +28,14 @@ FM.MailboxList = React.createClass({
             return React.DOM.div(null, 'Loading...')
 
         mailboxNodes = @state.mailboxes.map((mailbox) -> FM.Mailbox({
+            id: mailbox
             key: mailbox
         }))
 
         return React.DOM.div({className: 'panel-group'}, mailboxNodes)
-})
 
 
-FM.Mailbox = React.createClass({
+FM.Mailbox = createReact
 
     displayName: 'Mailbox'
 
@@ -47,7 +51,7 @@ FM.Mailbox = React.createClass({
             cEmail: FM.email
             cPassword: FM.password
         }
-        lmrMailbox: @props.key
+        lmrMailbox: @props.id
         lmrPage: @state.currentPage
     }, (data) => @setState({
         messages: data
@@ -55,7 +59,7 @@ FM.Mailbox = React.createClass({
 
     componentDidMount: ->
 
-        @safeID = FM.makeId(@props.key)
+        @safeID = FM.makeId(@props.id)
 
         $(document).on('show.bs.collapse', "##{@safeID}", @loadMessages)
 
@@ -65,7 +69,7 @@ FM.Mailbox = React.createClass({
                 cEmail: FM.email
                 cPassword: FM.password
             }
-            cmrMailbox: @props.key
+            cmrMailbox: @props.id
         }, (data) => @setState({
                 messageCount: data
         }))
@@ -86,7 +90,7 @@ FM.Mailbox = React.createClass({
                     'data-toggle': 'collapse'
                     href: "##{url}"
                 }, subject))
-                React.DOM.td(null, sender)
+                React.DOM.td(null, showContact sender)
                 React.DOM.td(null, date)
             )
             React.DOM.tr(null
@@ -100,7 +104,7 @@ FM.Mailbox = React.createClass({
                         React.DOM.dt(null, 'Subject')
                         React.DOM.dd(null, subject)
                         React.DOM.dt(null, 'From')
-                        React.DOM.dd(null, sender)
+                        React.DOM.dd(null, showContact sender)
                         React.DOM.dt(null, 'Date')
                         React.DOM.dd(null, date)
                     )
@@ -151,7 +155,7 @@ FM.Mailbox = React.createClass({
                     React.DOM.a({
                         'data-toggle': 'collapse'
                         href: "##{@safeID}"
-                    }, @props.key, badge)))
+                    }, @props.id, badge)))
             React.DOM.div(
                 {
                     id: @safeID
@@ -161,10 +165,9 @@ FM.Mailbox = React.createClass({
                 React.DOM.div({className: 'text-center'}, pager)
             )
         )
-})
 
 
-FM.PagerItem = React.createClass({
+FM.PagerItem = createReact
 
     displayName: 'PagerItem'
 
@@ -179,10 +182,9 @@ FM.PagerItem = React.createClass({
             React.DOM.li({onClick: @handleClick}, React.DOM.span(null, @props.text))
         else
             React.DOM.li({className: 'disabled'}, React.DOM.span(null, @props.text))
-})
 
 
-FM.Pager = React.createClass({
+FM.Pager = createReact
 
     displayName: 'Pager'
 
@@ -201,10 +203,9 @@ FM.Pager = React.createClass({
         # TODO: handle a large number of pages
         items = (makePagerItem(i) for i in [1..totalPages])
         return React.DOM.ul({className: 'pagination'}, previous, items, next)
-})
 
 
-FM.Alert = React.createClass({
+FM.Alert = createReact
     displayName: 'Alert'
     render: ->
         if @props.code && @props.message
@@ -212,4 +213,3 @@ FM.Alert = React.createClass({
                 className: 'alert alert-danger'
                 role: 'alert'
             }, React.DOM.strong(null, @props.code), ': ', @props.message)
-})
