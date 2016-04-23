@@ -1,14 +1,5 @@
-window.host = ''
-window.email = ''
-window.password = ''
-
-
-mailboxList = React.renderComponent(
-    FM.MailboxList(),
-    document.getElementById('mailbox-list')
-)
-
-return
+window.FM = window.FM || {}
+FM = window.FM
 
 
 # GUI functions
@@ -23,22 +14,22 @@ relogin = (data) ->
 
 
 fetchMailboxes = ->
-    callback = (data) -> fooMail.setState({
+    callback = (data) -> FM.setState({
         mailboxes: data
     })
     FM.postJSON('/api/mailbox/list', {
-        cHost: window.host
-        cEmail: window.email
-        cPassword: window.password
+        cHost: FM.host
+        cEmail: FM.email
+        cPassword: FM.password
     }, callback)
 
 
 fetchMessages = (mailbox, page, callback) ->
     FM.postJSON('/api/message/list', {
         lmrCredentials: {
-            cHost: window.host
-            cEmail: window.email
-            cPassword: window.password
+            cHost: FM.host
+            cEmail: FM.email
+            cPassword: FM.password
         }
         lmrMailbox: mailbox
         lmrPage: page
@@ -53,7 +44,7 @@ fetch = (force) ->
     mailbox = query[1] or 'INBOX'
     item = query[2] or 1
 
-    fooMail.setState({
+    FM.mailboxList.setState({
         mailbox: mailbox
         currentPage: item
     })
@@ -63,7 +54,7 @@ fetch = (force) ->
     # Skip loading the mailbox list, unless the user clicks on a mailbox or the
     # refresh button
     if force or query.length == 2
-        fooMail.setState({
+        FM.setState({
             currentMailbox: mailbox
         })
         fetchMailboxes()
@@ -107,9 +98,17 @@ $('#login-modal').on 'shown.bs.modal', ->
     $('#login-email').focus()
 
 $('#login-modal').on 'hide.bs.modal', ->
-    window.host = 'mail.phunehehe.net'
-    window.email = $('#login-email').val()
-    window.password = $('#login-password').val()
+    document.cookie = JSON.stringify
+      host: $('#login-host').val()
+      mail: $('#login-email').val()
+      password: $('#login-password').val()
+    FM.host = $('#login-host').val()
+    FM.email = $('#login-email').val()
+    FM.password = $('#login-password').val()
+    FM.mailboxList = React.renderComponent(
+        FM.MailboxList(),
+        document.getElementById('mailbox-list')
+    )
     fetch(true)
 
 $('#compose-button').click ->

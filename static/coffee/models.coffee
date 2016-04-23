@@ -1,4 +1,5 @@
 window.FM = window.FM || {}
+FM = window.FM
 
 
 FM.MailboxList = React.createClass({
@@ -10,9 +11,9 @@ FM.MailboxList = React.createClass({
     }
 
     componentDidMount: -> FM.postJSON('/api/mailbox/list', {
-        cHost: window.host
-        cEmail: window.email
-        cPassword: window.password
+        cHost: FM.host
+        cEmail: FM.email
+        cPassword: FM.password
     }, (data) => @setState({
         mailboxes: data
     }))
@@ -42,9 +43,9 @@ FM.Mailbox = React.createClass({
 
     loadMessages: -> FM.postJSON('/api/message/list', {
         lmrCredentials: {
-            cHost: window.host
-            cEmail: window.email
-            cPassword: window.password
+            cHost: FM.host
+            cEmail: FM.email
+            cPassword: FM.password
         }
         lmrMailbox: @props.key
         lmrPage: @state.currentPage
@@ -60,9 +61,9 @@ FM.Mailbox = React.createClass({
 
         FM.postJSON('/api/message/count', {
             cmrCredentials: {
-                cHost: window.host
-                cEmail: window.email
-                cPassword: window.password
+                cHost: FM.host
+                cEmail: FM.email
+                cPassword: FM.password
             }
             cmrMailbox: @props.key
         }, (data) => @setState({
