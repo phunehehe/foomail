@@ -17,8 +17,16 @@ main = hspec $ do
             filterMailboxes input `shouldBe` ["normal"]
 
     describe "Helper.Contact.readsprec" $ do
+
+        let address = "example@example.com"
+
         it "omits the name if not supplied" $ do
-            let
-                address = "example@example.com"
-                contact = Contact Nothing $ pack address
+            let contact = Contact Nothing $ pack address
             reads address `shouldBe` [(contact, "")]
+
+        it "adds the name if supplied" $ do
+            let
+                name = "Example Com"
+                input = name ++ " <" ++ address ++ ">"
+                contact = Contact (Just $ pack name) (pack address)
+            reads input `shouldBe` [(contact, "")]
