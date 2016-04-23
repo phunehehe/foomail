@@ -31,7 +31,7 @@ import           Text.Read                          (readMaybe)
 
 data Contact = Contact { cName    :: Maybe T.Text
                        , cAddress :: T.Text
-                       } deriving (Generic)
+                       } deriving (Eq, Generic)
 instance ToJSON Contact
 instance FromJSON Contact
 instance Show Contact where
