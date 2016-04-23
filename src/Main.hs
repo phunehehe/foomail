@@ -118,7 +118,7 @@ sendMessage _r@SendMessageRequest{..} = liftIO $ do
     SMTP.sendMail sender receivers mailContent connection
     where
         sender = maybe "" show smrSender
-        receivers = map show $ smrTo ++ smrCc ++ smrBcc
+        receivers = show <$> smrTo ++ smrCc ++ smrBcc
         mailContent = toStrict $ encodeUtf8 $ T.append subject body
         subject = fromMaybe T.empty smrSubject
         -- TODO: support multi part

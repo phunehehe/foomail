@@ -24,8 +24,7 @@ import           GHC.Generics                       (Generic)
 import           Network.HaskellNet.Auth            (Password, UserName)
 import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
 import           Network.HaskellNet.IMAP.SSL        (connectIMAPSSL)
-import           Network.HaskellNet.IMAP.Types      (UID)
-import           Network.HaskellNet.IMAP.Types      (MailboxName)
+import           Network.HaskellNet.IMAP.Types      (MailboxName, UID)
 import           Text.Printf                        (printf)
 import           Text.Read                          (readMaybe)
 
@@ -98,7 +97,7 @@ mimeContents :: M.MIMEValue -> [T.Text]
 mimeContents message =
     case M.mime_val_content message of
         M.Single content -> [T.fromStrict content]
-        M.Multi subValues -> concatMap mimeContents subValues
+        M.Multi subValues -> mimeContents =<< subValues
 
 parseContacts :: Maybe T.Text -> [Contact]
 parseContacts = maybe [] (mapMaybe (parseContact . Just) . T.splitOn ",")
@@ -133,4 +132,4 @@ messagesPerPage :: Int
 messagesPerPage = 10
 
 filterMailboxes :: [([I.Attribute], MailboxName)] -> [MailboxName]
-filterMailboxes = map snd . filter (notElem I.Noselect . fst)
+filterMailboxes = fmap snd . filter (notElem I.Noselect . fst)

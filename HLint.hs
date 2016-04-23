@@ -7,8 +7,8 @@ module HLint.HLint where
 
 import           "hint" HLint.Builtin.All
 import           "hint" HLint.Default
-import           "hint" HLint.Dollar
 import           "hint" HLint.Generalise
 
-ignore "Redundant do" = Main.main
 ignore "Use mappend"
+
+ignore "Redundant do" = Main.main
