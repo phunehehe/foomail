@@ -19,6 +19,7 @@ import           Data.List                          (find)
 import           Data.Maybe                         (mapMaybe)
 import           Data.Pool                          (Pool, createPool,
                                                      withResource)
+import           Data.Text.Lazy                     (Text)
 import           Data.Text.Lazy.Encoding            (decodeUtf8)
 import           GHC.Generics                       (Generic)
 import           Network.HaskellNet.Auth            (Password, UserName)
@@ -29,31 +30,35 @@ import           Text.Printf                        (printf)
 import           Text.Read                          (readMaybe)
 
 
-data Contact = Contact { cName    :: Maybe T.Text
-                       , cAddress :: T.Text
+data Contact = Contact { cName    :: Maybe Text
+                       , cAddress :: Text
                        } deriving (Eq, Generic)
 instance ToJSON Contact
 instance FromJSON Contact
+
 instance Show Contact where
     show (Contact Nothing address) = T.unpack address
     show (Contact (Just name) address) =
         printf "%s <%s>" (T.unpack name) $ T.unpack address
+
 instance Read Contact where
-    -- TODO: maybe add some more validation
     readsPrec _ string = case break (== '<') string of
         (_, []) -> [(Contact Nothing $ T.pack string, "")]
-        (name, address) -> case break (== '>') address of
-            (address', ">") -> [(Contact (Just $ T.pack name) $ T.pack address', "")]
-            _ -> []
+        _       -> [(Contact (Just name) address, "")]
+            where
+                name = T.strip $ T.pack $ takeWhile (/= '<') string
+                address = T.pack $ takeWhile (/= '>') $ dropWhile (== '<')
+                    $ dropWhile (/= '<') string
+
 
 data Message = Message { mUid      :: Maybe UID
                        , mCc       :: [Contact]
                        , mBcc      :: [Contact]
-                       , mDate     :: Maybe T.Text
+                       , mDate     :: Maybe Text
                        , mSender   :: Maybe Contact
-                       , mSubject  :: Maybe T.Text
+                       , mSubject  :: Maybe Text
                        , mTo       :: [Contact]
-                       , mContents :: [T.Text]
+                       , mContents :: [Text]
                        } deriving (Show, Generic)
 instance ToJSON Message
 instance FromJSON Message
@@ -93,23 +98,23 @@ getPage :: [a] -> Int -> [a]
 getPage items pageNumber = take messagesPerPage $ drop before items
     where before = messagesPerPage * (pageNumber - 1)
 
-mimeContents :: M.MIMEValue -> [T.Text]
+mimeContents :: M.MIMEValue -> [Text]
 mimeContents message =
     case M.mime_val_content message of
         M.Single content -> [T.fromStrict content]
         M.Multi subValues -> mimeContents =<< subValues
 
-parseContacts :: Maybe T.Text -> [Contact]
+parseContacts :: Maybe Text -> [Contact]
 parseContacts = maybe [] (mapMaybe (parseContact . Just) . T.splitOn ",")
 
-headerValue :: [M.MIMEParam] -> T.Text -> Maybe T.Text
+headerValue :: [M.MIMEParam] -> Text -> Maybe Text
 headerValue headers headerName = fmap (T.fromStrict . M.paramValue) header
     where header = find (\h -> M.paramName h == T.toStrict headerName) headers
 
-parseContact :: Maybe T.Text -> Maybe Contact
+parseContact :: Maybe Text -> Maybe Contact
 parseContact = maybe Nothing $ readMaybe . T.unpack
 
-parseMessage :: UID -> T.Text -> Message
+parseMessage :: UID -> Text -> Message
 parseMessage uid message = Message { mUid = Just uid
                                    , mCc = parseContacts $ headerValue headers "cc"
                                    , mBcc = parseContacts $ headerValue headers "bcc"
