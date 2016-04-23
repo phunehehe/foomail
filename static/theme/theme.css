@@ -1,33 +1,14 @@
 body {
-  padding-top: 70px;
-  padding-bottom: 30px;
+    /* Make room for the navigation bar */
+    padding-top: 70px;
 }
-
-.theme-showcase > p > .btn {
-  margin: 5px 0;
-}
-
-.theme-showcase .navbar .container {
-  width: auto;
-}
-
 
 .toolbar {
+    /* Match the margin of the navigation bar */
     margin-bottom: 20px;
 }
 
-
+/* Message count */
 #mailbox-list .panel-heading .badge {
     float: right;
-}
-
-
-td.collapse.in {
-    display: table-cell;
-}
-
-
-/* Until we have a better way to handle `pre` */
-.message-list {
-    table-layout: fixed;
 }
