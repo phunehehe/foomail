@@ -1,3 +1,4 @@
+name: foomail
 ghc-options: -Wall
 license: MPL-2.0
 source-dirs: src
