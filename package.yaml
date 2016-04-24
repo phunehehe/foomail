@@ -1,5 +1,8 @@
 ghc-options: -Wall
+license: MPL-2.0
 source-dirs: src
+
+data-files: static/**/*
 
 dependencies:
   - base
@@ -21,8 +24,6 @@ dependencies:
 executables:
   foomail:
     main: Main.hs
-
-data-files: static/**/*
 
 tests:
   spec:
