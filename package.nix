@@ -12,6 +12,10 @@ let
       cp --no-preserve=mode --recursive $src $out
       cd $out
       coffee --compile static/coffee/*.coffee
+      find static -iname '*.min.*' \
+      | while read f
+        do mv $f ''${f/.min/}
+        done
       hpack
       cabal2nix . > default.nix
     '';
