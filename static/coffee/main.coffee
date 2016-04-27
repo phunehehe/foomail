@@ -88,16 +88,20 @@ $('#compose-submit').click ->
 
 # Do it!
 
-cookies = JSON.parse(document.cookie)
-FM.host = cookies.host
-FM.email = cookies.email
-FM.password = cookies.password
+try
+
+  cookies = JSON.parse(document.cookie)
+  FM.host = cookies.host
+  FM.email = cookies.email
+  FM.password = cookies.password
+
+catch error
+
+  console.log(error)
+  # FIXME: This doesn't quite work yet
+  $('#login-modal').modal()
 
 FM.mailboxList = ReactDOM.render(
   FM.MailboxList()
   document.getElementById('mailbox-list')
 )
-
-if FM.host? and FM.email? and FM.password
-  fetch()
-else $('#login-modal').modal()
