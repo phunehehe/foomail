@@ -61,39 +61,43 @@ fetch = ->
 $(window).on('hashchange', -> fetch())
 $('#refresh-button').click( -> fetch())
 $('#login-modal').on('shown.bs.modal', -> $('#login-email').focus())
+$('#compose-button').click( -> $('#compose-modal').modal())
+$('#compose-modal').on('shown.bs.modal', -> $('#compose-recipients').focus())
 
 $('#login-modal').on(
   'hide.bs.modal'
   ->
     document.cookie = JSON.stringify({
       host: $('#login-host').val()
-      mail: $('#login-email').val()
+      email: $('#login-email').val()
       password: $('#login-password').val()
     })
     FM.host = $('#login-host').val()
     FM.email = $('#login-email').val()
     FM.password = $('#login-password').val()
-    FM.mailboxList = ReactDOM.render(
-        FM.MailboxList(),
-        document.getElementById('mailbox-list')
-    )
     fetch()
 )
 
-$('#compose-button').click ->
-    $('#compose-modal').modal()
-
-$('#compose-modal').on 'shown.bs.modal', ->
-    $('#compose-recipients').focus()
-
 $('#compose-submit').click ->
-    recipients = $('#compose-recipients').val()
-    subject = $('#compose-subject').val()
-    message = $('#compose-message').val()
-    console.log "Sending message #{subject} to #{recipients}: #{message}"
-    $('#compose-modal').modal('hide')
+  recipients = $('#compose-recipients').val()
+  subject = $('#compose-subject').val()
+  message = $('#compose-message').val()
+  console.log("Sending message #{subject} to #{recipients}: #{message}")
+  $('#compose-modal').modal('hide')
 
 
 # Do it!
 
-$('#login-modal').modal()
+cookies = JSON.parse(document.cookie)
+FM.host = cookies.host
+FM.email = cookies.email
+FM.password = cookies.password
+
+FM.mailboxList = ReactDOM.render(
+  FM.MailboxList()
+  document.getElementById('mailbox-list')
+)
+
+if FM.host? and FM.email? and FM.password
+  fetch()
+else $('#login-modal').modal()
