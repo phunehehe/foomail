@@ -14,18 +14,6 @@ FM.MailboxList = createReact({
     mailboxes: null
   }
 
-  componentDidMount: -> FM.postJSON(
-    '/api/mailbox/list'
-    {
-      cHost: FM.host
-      cEmail: FM.email
-      cPassword: FM.password
-    }
-    (data) => @setState({
-      mailboxes: data
-    })
-  )
-
   render: ->
 
     if !@state.mailboxes

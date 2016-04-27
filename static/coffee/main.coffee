@@ -14,7 +14,7 @@ relogin = (data) ->
 
 
 fetchMailboxes = ->
-  callback = (data) -> FM.setState({
+  callback = (data) -> FM.mailboxList.setState({
     mailboxes: data
   })
   FM.postJSON(
@@ -52,10 +52,8 @@ fetch = ->
   mailbox = query[1] or 'INBOX'
   item = query[2] or 1
 
-  FM.mailboxList.setState({
-    mailbox: mailbox
-    currentPage: item
-  })
+  fetchMailboxes()
+
 
 
 $(window).on('hashchange', -> fetch())
@@ -88,20 +86,21 @@ $('#compose-submit').click ->
 
 # Do it!
 
+FM.mailboxList = ReactDOM.render(
+  FM.MailboxList()
+  document.getElementById('mailbox-list')
+)
+
 try
 
   cookies = JSON.parse(document.cookie)
   FM.host = cookies.host
   FM.email = cookies.email
   FM.password = cookies.password
+  fetch()
 
 catch error
 
   console.log(error)
   # FIXME: This doesn't quite work yet
   $('#login-modal').modal()
-
-FM.mailboxList = ReactDOM.render(
-  FM.MailboxList()
-  document.getElementById('mailbox-list')
-)
