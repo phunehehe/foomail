@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "eslint": "*",
+    "eslint-plugin-react": "*",
+    "eslint-plugin-standard": "*",
+    "eslint-plugin-promise": "*",
+    "eslint-config-standard": "*"
+  }
+}

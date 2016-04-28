@@ -1,0 +1,8 @@
+env:
+    browser: true
+    jquery: true
+extends:
+  - eslint:recommended
+globals:
+    ReactDOM: false
+    React: false
