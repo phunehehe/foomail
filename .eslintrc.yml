@@ -4,5 +4,10 @@ env:
 extends:
   - eslint:recommended
 globals:
-    ReactDOM: false
     React: false
+    ReactDOM: false
+rules:
+    yoda: off
+    no-multiple-empty-lines:
+      - error
+      - max: 2
