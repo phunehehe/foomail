@@ -1,5 +1,5 @@
 image: phunehehe/nix
 eslint:
-    script: ./test.sh eslint
+    script: ./test/test.sh eslint
 hspec:
-    script: ./test.sh hspec
+    script: ./test/test.sh hspec
