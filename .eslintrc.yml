@@ -6,6 +6,7 @@ extends:
 globals:
     React: false
     ReactDOM: false
+    casper: false
 rules:
     yoda: off
     no-multiple-empty-lines:

@@ -26,7 +26,7 @@ run_eslint() {
     in pkgs.callPackage ./eslint {}
   ')/bin:$PATH
 
-  eslint static/js/main.js
+  eslint static/js/main.js test/spec.js
 }
 
 run_hspec() {
