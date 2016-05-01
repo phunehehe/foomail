@@ -1,3 +1,5 @@
 image: phunehehe/nix
-build:
-    script: ./test.sh
+eslint:
+    script: ./test.sh eslint
+hspec:
+    script: ./test.sh hspec
