@@ -1,4 +1,6 @@
 image: phunehehe/nix
+casperjs:
+    script: ./test/test.sh casperjs
 eslint:
     script: ./test/test.sh eslint
 hspec:

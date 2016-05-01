@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, fontsConf, phantomjs2, python, nodePackages }:
+{ stdenv, fetchFromGitHub, eslint, fontsConf, phantomjs2, python }:
 
 let version = "1.1.1";
 
@@ -13,7 +13,7 @@ in stdenv.mkDerivation rec {
     sha256 = "187prrm728xpn0nx9kxfxa4fwd7w25z78nsxfk6a6kl7c5656jpz";
   };
 
-  buildInputs = [ phantomjs2 python nodePackages.eslint ];
+  buildInputs = [ phantomjs2 python eslint ];
 
   patchPhase = ''
     substituteInPlace bin/casperjs --replace "/usr/bin/env python" "${python}/bin/python" \
