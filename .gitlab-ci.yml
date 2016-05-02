@@ -1,4 +1,4 @@
-image: phunehehe/nix
+image: phunehehe/nix:nixos-16.03
 casperjs:
     script: ./test/test.sh casperjs
 eslint:

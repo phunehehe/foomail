@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -efuxo pipefail
 
-export NIX_PATH=nixpkgs=$HOME/.nix-defexpr/channels/nixos-16.03
 nix_build='nix-build --no-out-link'
 PATH=$($nix_build '<nixpkgs>' --attr nix)/bin
 
