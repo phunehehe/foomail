@@ -318,15 +318,10 @@ $('#compose-modal').on('shown.bs.modal', function () {
 })
 
 $('#login-modal').on('hide.bs.modal', function () {
-  document.cookie = JSON.stringify({
-    host: $('#login-host').val(),
-    email: $('#login-email').val(),
-    password: $('#login-password').val()
-  })
-  FM.host = $('#login-host').val()
-  FM.email = $('#login-email').val()
-  FM.password = $('#login-password').val()
-  return fetch()
+  localStorage.setItem('host', $('#login-host').val())
+  localStorage.setItem('email', $('#login-email').val())
+  localStorage.setItem('password', $('#login-password').val())
+  fetch()
 })
 
 $('#compose-submit').click(function () {
