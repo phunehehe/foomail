@@ -335,12 +335,12 @@ $('#compose-submit').click(function () {
 
 FM.mailboxList = ReactDOM.render(FM.MailboxList(), document.getElementById('mailbox-list'))
 
-try {
-  var cookies = JSON.parse(document.cookie)
-  FM.host = cookies.host
-  FM.email = cookies.email
-  FM.password = cookies.password
+if (
+    localStorage.getItem('host')
+ && localStorage.getItem('email')
+ && localStorage.getItem('password')
+) {
   fetch()
-} catch (error1) {
+} else {
   $('#login-modal').modal()
 }
