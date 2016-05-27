@@ -11,7 +11,9 @@ run_casperjs() {
     let inherit (import <nixpkgs> {}) pkgs;
     in pkgs.callPackage ./casperjs {
       inherit (pkgs.texFunctions) fontsConf;
-      eslint = pkgs.callPackage ./eslint {};
+      nodePackages = pkgs.nodePackages // {
+        eslint = pkgs.callPackage ./eslint {};
+      };
     }
   ')/bin:$PATH
 
