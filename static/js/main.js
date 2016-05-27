@@ -3,6 +3,16 @@ var slice = [].slice
 window.FM = window.FM || {}
 FM = window.FM
 
+
+var getCredentials = function () {
+    return {
+        cHost: localStorage.getItem('host'),
+        cEmail: localStorage.getItem('email'),
+        cPassword: localStorage.getItem('password'),
+    }
+}
+
+
 FM.makeUrl = function () {
   var p, parts
   parts = 1 <= arguments.length ? slice.call(arguments, 0) : []
@@ -91,11 +101,7 @@ FM.Mailbox = createReact({
   },
   loadMessages: function () {
     return FM.postJSON('/api/message/list', {
-      lmrCredentials: {
-        cHost: FM.host,
-        cEmail: FM.email,
-        cPassword: FM.password
-      },
+      lmrCredentials: getCredentials(),
       lmrMailbox: this.props.id,
       lmrPage: this.state.currentPage
     }, (function (_this) {
@@ -110,11 +116,7 @@ FM.Mailbox = createReact({
     this.safeID = FM.makeId(this.props.id)
     $(document).on('show.bs.collapse', '#' + this.safeID, this.loadMessages)
     return FM.postJSON('/api/message/count', {
-      cmrCredentials: {
-        cHost: FM.host,
-        cEmail: FM.email,
-        cPassword: FM.password
-      },
+      cmrCredentials: getCredentials(),
       cmrMailbox: this.props.id
     }, (function (_this) {
       return function (data) {
@@ -270,11 +272,7 @@ var fetchMailboxes = function () {
       mailboxes: data
     })
   }
-  return FM.postJSON('/api/mailbox/list', {
-    cHost: FM.host,
-    cEmail: FM.email,
-    cPassword: FM.password
-  }, callback)
+  return FM.postJSON('/api/mailbox/list', getCredentials(), callback)
 }
 
 // var fetchMessages = function (mailbox, page, callback) {
