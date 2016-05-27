@@ -26,7 +26,8 @@ import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
 import           Network.HaskellNet.IMAP.Types      (MailboxName)
 import           Network.HaskellNet.SMTP.SSL        (connectSMTPSTARTTLS)
 import           Network.Wai.Handler.Warp           (run)
-import           Servant                            ((:<|>) (..), (:>))
+import           Servant                            ((:<|>) (..), (:>), JSON,
+                                                     Post, ReqBody)
 
 
 data CountMessageRequest = CountMessageRequest { cmrCredentials :: H.Credentials
@@ -55,10 +56,10 @@ instance ToJSON SendMessageRequest
 instance FromJSON SendMessageRequest
 
 type MailApi =
-      "api" :> "mailbox" :> "list"  :> S.ReqBody '[S.JSON] H.Credentials :> S.Post '[S.JSON] [MailboxName]
- :<|> "api" :> "message" :> "count" :> S.ReqBody '[S.JSON] CountMessageRequest :> S.Post '[S.JSON] Int
- :<|> "api" :> "message" :> "list"  :> S.ReqBody '[S.JSON] ListMessageRequest :> S.Post '[S.JSON] [H.Message]
- :<|> "api" :> "message" :> "send"  :> S.ReqBody '[S.JSON] SendMessageRequest :> S.Post '[S.JSON] ()
+      "api" :> "mailbox" :> "list"  :> ReqBody '[JSON] H.Credentials :> Post '[JSON] [MailboxName]
+ :<|> "api" :> "message" :> "count" :> ReqBody '[JSON] CountMessageRequest :> Post '[JSON] Int
+ :<|> "api" :> "message" :> "list"  :> ReqBody '[JSON] ListMessageRequest :> Post '[JSON] [H.Message]
+ :<|> "api" :> "message" :> "send"  :> ReqBody '[JSON] SendMessageRequest :> Post '[JSON] ()
  :<|> S.Raw
 
 
