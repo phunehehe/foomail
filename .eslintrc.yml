@@ -9,7 +9,10 @@ globals:
     casper: false
     require: false
 rules:
-    yoda: off
+    comma-dangle:
+      - error
+      - always-multiline
     no-multiple-empty-lines:
       - error
       - max: 2
+    yoda: off

@@ -47,7 +47,7 @@ FM.postJSON = function (url, data, callback) {
     type: 'POST',
     data: JSON.stringify(data),
     contentType: 'application/json',
-    success: callback
+    success: callback,
   })
 }
 
@@ -69,9 +69,7 @@ showContact = function (contact) {
 FM.MailboxList = createReact({
   displayName: 'MailboxList',
   getInitialState: function () {
-    return {
-      mailboxes: null
-    }
+    return { mailboxes: null }
   },
   render: function () {
     var mailboxNodes
@@ -81,13 +79,11 @@ FM.MailboxList = createReact({
     mailboxNodes = this.state.mailboxes.map(function (mailbox) {
       return FM.Mailbox({
         id: mailbox,
-        key: mailbox
+        key: mailbox,
       })
     })
-    return React.DOM.div({
-      className: 'panel-group'
-    }, mailboxNodes)
-  }
+    return React.DOM.div({ className: 'panel-group' }, mailboxNodes)
+  },
 })
 
 FM.Mailbox = createReact({
@@ -96,19 +92,17 @@ FM.Mailbox = createReact({
     return {
       messageCount: null,
       currentPage: 1,
-      messages: null
+      messages: null,
     }
   },
   loadMessages: function () {
     return FM.postJSON('/api/message/list', {
       lmrCredentials: getCredentials(),
       lmrMailbox: this.props.id,
-      lmrPage: this.state.currentPage
+      lmrPage: this.state.currentPage,
     }, (function (_this) {
       return function (data) {
-        return _this.setState({
-          messages: data
-        })
+        return _this.setState({ messages: data })
       }
     })(this))
   },
@@ -117,72 +111,91 @@ FM.Mailbox = createReact({
     $(document).on('show.bs.collapse', '#' + this.safeID, this.loadMessages)
     return FM.postJSON('/api/message/count', {
       cmrCredentials: getCredentials(),
-      cmrMailbox: this.props.id
+      cmrMailbox: this.props.id,
     }, (function (_this) {
       return function (data) {
-        return _this.setState({
-          messageCount: data
-        })
+        return _this.setState({ messageCount: data })
       }
     })(this))
   },
   handleClick: function (page) {
-    this.setState({
-      currentPage: page
-    })
+    this.setState({ currentPage: page })
     return this.loadMessages()
   },
   renderMessage: function (uid, subject, sender, date, contents) {
     var url
     url = FM.makeId(this.safeID, uid)
     return [
-      React.DOM.tr(null, React.DOM.td(null, React.DOM.a({
-        'data-toggle': 'collapse',
-        href: '#' + url
-      }, subject)), React.DOM.td(null, showContact(sender)), React.DOM.td(null, date)), React.DOM.tr(null, React.DOM.td({
-        id: url,
-        className: 'collapse',
-        colSpan: 3
-      }, React.DOM.dl({
-        className: 'dl-horizontal'
-      }, React.DOM.dt(null, 'Subject'), React.DOM.dd(null, subject), React.DOM.dt(null, 'From'), React.DOM.dd(null, showContact(sender)), React.DOM.dt(null, 'Date'), React.DOM.dd(null, date)), React.DOM.pre(null, contents[0])))
+      React.DOM.tr(null,
+        React.DOM.td(null, React.DOM.a({
+          'data-toggle': 'collapse',
+          href: '#' + url,
+        }, subject)),
+        React.DOM.td(null, showContact(sender)),
+        React.DOM.td(null, date)),
+      React.DOM.tr(null, React.DOM.td(
+        {
+          id: url,
+          className: 'collapse',
+          colSpan: 3,
+        },
+        React.DOM.dl({ className: 'dl-horizontal' },
+          React.DOM.dt(null, 'Subject'),
+          React.DOM.dd(null, subject),
+          React.DOM.dt(null, 'From'),
+          React.DOM.dd(null, showContact(sender)),
+          React.DOM.dt(null, 'Date'),
+          React.DOM.dd(null, date)
+        ),
+        React.DOM.pre(null, contents[0])
+      )),
     ]
   },
   render: function () {
     var badge, messageList, messageNodes, pager
-    badge = this.state.messageCount ? React.DOM.span({
-      className: 'badge'
-    }, this.state.messageCount) : ''
-    pager = this.state.messageCount ? FM.Pager({
-      currentPage: this.state.currentPage,
-      handleClick: this.handleClick,
-      totalItems: this.state.messageCount
-    }) : 'Loading...'
+    badge = this.state.messageCount
+      ? React.DOM.span({ className: 'badge' }, this.state.messageCount)
+      : ''
+    pager = this.state.messageCount
+      ? FM.Pager({
+          currentPage: this.state.currentPage,
+          handleClick: this.handleClick,
+          totalItems: this.state.messageCount,
+        })
+      : 'Loading...'
     messageList = this.state.messages ? (messageNodes = this.state.messages.map((function (_this) {
       return function (message) {
         return _this.renderMessage(message.mUid, message.mSubject, message.mSender, message.mDate, message.mContents)
       }
-    })(this)), React.DOM.table({
-      className: 'message-list table table-striped table-hover'
-    }, React.DOM.thead(null, React.DOM.tr(null, React.DOM.th(null, 'Subject'), React.DOM.th(null, 'From'), React.DOM.th(null, 'Date'))), React.DOM.tbody(null, messageNodes))) : React.DOM.div(null, 'Loading...')
-    return React.DOM.div({
-      className: 'panel panel-default'
-    }, React.DOM.div({
-      className: 'panel-heading'
-    }, React.DOM.h4({
-      className: 'panel-title'
-    }, React.DOM.a({
-      'data-toggle': 'collapse',
-      href: '#' + this.safeID
-    }, this.props.id, badge))), React.DOM.div({
-      id: this.safeID,
-      className: 'panel-collapse collapse'
-    }, React.DOM.div({
-      className: 'panel-body'
-    }, messageList), React.DOM.div({
-      className: 'text-center'
-    }, pager)))
-  }
+    })(this)), React.DOM.table(
+      { className: 'message-list table table-striped table-hover' },
+      React.DOM.thead(null, React.DOM.tr(null,
+        React.DOM.th(null, 'Subject'),
+        React.DOM.th(null, 'From'),
+        React.DOM.th(null, 'Date')
+      )),
+      React.DOM.tbody(null, messageNodes)
+    )) : React.DOM.div(null, 'Loading...')
+    return React.DOM.div({ className: 'panel panel-default' },
+      React.DOM.div({ className: 'panel-heading' },
+        React.DOM.h4({ className: 'panel-title' }, React.DOM.a(
+          {
+            'data-toggle': 'collapse',
+            href: '#' + this.safeID,
+          },
+          this.props.id, badge
+        ))
+      ),
+      React.DOM.div(
+        {
+          id: this.safeID,
+          className: 'panel-collapse collapse',
+        },
+        React.DOM.div({ className: 'panel-body' }, messageList),
+        React.DOM.div({ className: 'text-center' }, pager)
+      )
+    )
+  },
 })
 
 FM.PagerItem = createReact({
@@ -193,19 +206,19 @@ FM.PagerItem = createReact({
   render: function () {
     var ref
     if (this.props.currentPage === this.props.target) {
-      return React.DOM.li({
-        className: 'active'
-      }, React.DOM.span(null, this.props.text))
+      return React.DOM.li({ className: 'active' },
+        React.DOM.span(null, this.props.text)
+      )
     } else if ((0 < (ref = this.props.target) && ref <= this.props.total)) {
-      return React.DOM.li({
-        onClick: this.handleClick
-      }, React.DOM.span(null, this.props.text))
+      return React.DOM.li({ onClick: this.handleClick },
+        React.DOM.span(null, this.props.text)
+      )
     } else {
-      return React.DOM.li({
-        className: 'disabled'
-      }, React.DOM.span(null, this.props.text))
+      return React.DOM.li({ className: 'disabled' },
+        React.DOM.span(null, this.props.text)
+      )
     }
-  }
+  },
 })
 
 FM.Pager = createReact({
@@ -224,7 +237,7 @@ FM.Pager = createReact({
           target: target,
           total: totalPages,
           handleClick: _this.props.handleClick,
-          text: text
+          text: text,
         })
       }
     })(this)
@@ -238,10 +251,8 @@ FM.Pager = createReact({
       }
       return results
     })()
-    return React.DOM.ul({
-      className: 'pagination'
-    }, previous, items, next)
-  }
+    return React.DOM.ul({ className: 'pagination' }, previous, items, next)
+  },
 })
 
 FM.Alert = createReact({
@@ -250,10 +261,10 @@ FM.Alert = createReact({
     if (this.props.code && this.props.message) {
       return React.DOM.div({
         className: 'alert alert-danger',
-        role: 'alert'
+        role: 'alert',
       }, React.DOM.strong(null, this.props.code), ': ', this.props.message)
     }
-  }
+  },
 })
 
 
@@ -268,9 +279,7 @@ FM.Alert = createReact({
 var fetchMailboxes = function () {
   var callback
   callback = function (data) {
-    return FM.mailboxList.setState({
-      mailboxes: data
-    })
+    return FM.mailboxList.setState({ mailboxes: data })
   }
   return FM.postJSON('/api/mailbox/list', getCredentials(), callback)
 }
