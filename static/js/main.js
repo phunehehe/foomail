@@ -143,20 +143,12 @@ FM.Mailbox = createReact({
           React.DOM.div({ className: 'col-md-4' }, date)
         )
       ),
-      React.DOM.div(
+      React.DOM.pre(
         {
           id: url,
           className: 'panel-collapse collapse',
         },
-        React.DOM.dl({ className: 'dl-horizontal' },
-          React.DOM.dt(null, 'Subject'),
-          React.DOM.dd(null, subject),
-          React.DOM.dt(null, 'From'),
-          React.DOM.dd(null, showContact(sender)),
-          React.DOM.dt(null, 'Date'),
-          React.DOM.dd(null, date)
-        ),
-        React.DOM.pre(null, contents[0])
+        contents[0]
       )
     )
   },
