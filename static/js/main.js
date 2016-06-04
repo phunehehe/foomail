@@ -125,19 +125,28 @@ FM.Mailbox = createReact({
   renderMessage: function (uid, subject, sender, date, contents) {
     var url
     url = FM.makeId(this.safeID, uid)
-    return [
-      React.DOM.tr(null,
-        React.DOM.td(null, React.DOM.a({
-          'data-toggle': 'collapse',
-          href: '#' + url,
-        }, subject)),
-        React.DOM.td(null, showContact(sender)),
-        React.DOM.td(null, date)),
-      React.DOM.tr(null, React.DOM.td(
+    return React.DOM.div(
+      {
+        className: 'panel panel-default',
+        key: url,
+      },
+      React.DOM.div({ className: 'panel-heading' },
+        React.DOM.div({ className: 'panel-title row' },
+          React.DOM.div({ className: 'col-md-4' }, React.DOM.a(
+            {
+              'data-toggle': 'collapse',
+              href: '#' + url,
+            },
+            subject
+          )),
+          React.DOM.div({ className: 'col-md-4' }, showContact(sender)),
+          React.DOM.div({ className: 'col-md-4' }, date)
+        )
+      ),
+      React.DOM.div(
         {
           id: url,
-          className: 'collapse',
-          colSpan: 3,
+          className: 'panel-collapse collapse',
         },
         React.DOM.dl({ className: 'dl-horizontal' },
           React.DOM.dt(null, 'Subject'),
@@ -148,8 +157,8 @@ FM.Mailbox = createReact({
           React.DOM.dd(null, date)
         ),
         React.DOM.pre(null, contents[0])
-      )),
-    ]
+      )
+    )
   },
   render: function () {
     var badge, messageList, messageNodes, pager
@@ -167,15 +176,8 @@ FM.Mailbox = createReact({
       return function (message) {
         return _this.renderMessage(message.mUid, message.mSubject, message.mSender, message.mDate, message.mContents)
       }
-    })(this)), React.DOM.table(
-      { className: 'message-list table table-striped table-hover' },
-      React.DOM.thead(null, React.DOM.tr(null,
-        React.DOM.th(null, 'Subject'),
-        React.DOM.th(null, 'From'),
-        React.DOM.th(null, 'Date')
-      )),
-      React.DOM.tbody(null, messageNodes)
-    )) : React.DOM.div(null, 'Loading...')
+    })(this)), React.DOM.div(null, messageNodes)
+    ) : React.DOM.div(null, 'Loading...')
     return React.DOM.div({ className: 'panel panel-default' },
       React.DOM.div({ className: 'panel-heading' },
         React.DOM.h4({ className: 'panel-title' }, React.DOM.a(
