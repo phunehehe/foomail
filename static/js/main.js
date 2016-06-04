@@ -122,38 +122,8 @@ FM.Mailbox = createReact({
     this.setState({ currentPage: page })
     return this.loadMessages()
   },
-  renderMessage: function (uid, subject, sender, date, contents) {
-    var url
-    url = FM.makeId(this.safeID, uid)
-    return React.DOM.div(
-      {
-        className: 'panel panel-default',
-        key: url,
-      },
-      React.DOM.div({ className: 'panel-heading' },
-        React.DOM.div({ className: 'panel-title row' },
-          React.DOM.div({ className: 'col-md-4' }, React.DOM.a(
-            {
-              'data-toggle': 'collapse',
-              href: '#' + url,
-            },
-            subject
-          )),
-          React.DOM.div({ className: 'col-md-4' }, showContact(sender)),
-          React.DOM.div({ className: 'col-md-4' }, date)
-        )
-      ),
-      React.DOM.pre(
-        {
-          id: url,
-          className: 'panel-collapse collapse',
-        },
-        contents[0]
-      )
-    )
-  },
   render: function () {
-    var badge, messageList, messageNodes, pager
+    var badge, messageList, pager
     badge = this.state.messageCount
       ? React.DOM.span({ className: 'badge' }, this.state.messageCount)
       : ''
@@ -164,12 +134,19 @@ FM.Mailbox = createReact({
           totalItems: this.state.messageCount,
         })
       : 'Loading...'
-    messageList = this.state.messages ? (messageNodes = this.state.messages.map((function (_this) {
-      return function (message) {
-        return _this.renderMessage(message.mUid, message.mSubject, message.mSender, message.mDate, message.mContents)
-      }
-    })(this)), React.DOM.div(null, messageNodes)
-    ) : React.DOM.div(null, 'Loading...')
+    var safeID = this.safeID
+    messageList = this.state.messages
+      ? this.state.messages.map(function (message) {
+        return FM.Message({
+          mailboxID: safeID,
+          key: message.mUid,
+          uid: message.mUid,
+          subject: message.mSubject,
+          sender: message.mSender,
+          date: message.mDate,
+          contents: message.mContents,
+        })})
+      : React.DOM.div(null, 'Loading...')
     return React.DOM.div({ className: 'panel panel-default' },
       React.DOM.div({ className: 'panel-heading' },
         React.DOM.h4({ className: 'panel-title' }, React.DOM.a(
@@ -191,6 +168,40 @@ FM.Mailbox = createReact({
     )
   },
 })
+
+
+FM.Message = createReact({
+  displayName: 'Message',
+  render: function () {
+    var url = FM.makeId(this.props.mailboxID, this.props.uid)
+    return React.DOM.div(
+      {
+        className: 'panel panel-default',
+      },
+      React.DOM.div({ className: 'panel-heading' },
+        React.DOM.div({ className: 'panel-title row' },
+          React.DOM.div({ className: 'col-md-4' }, React.DOM.a(
+            {
+              'data-toggle': 'collapse',
+              href: '#' + url,
+            },
+            this.props.subject
+          )),
+          React.DOM.div({ className: 'col-md-4' }, showContact(this.props.sender)),
+          React.DOM.div({ className: 'col-md-4' }, this.props.date)
+        )
+      ),
+      React.DOM.pre(
+        {
+          id: url,
+          className: 'panel-collapse collapse',
+        },
+        this.props.contents[0]
+      )
+    )
+  },
+})
+
 
 FM.PagerItem = createReact({
   displayName: 'PagerItem',
