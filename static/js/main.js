@@ -12,21 +12,6 @@ var getCredentials = function () {
     }
 }
 
-
-FM.makeUrl = function () {
-  var p, parts
-  parts = 1 <= arguments.length ? slice.call(arguments, 0) : []
-  return '#' + ((function () {
-    var i, len, results
-    results = []
-    for (i = 0, len = parts.length; i < len; i++) {
-      p = parts[i]
-      results.push(encodeURIComponent(p))
-    }
-    return results
-  })()).join('/')
-}
-
 FM.makeId = function () {
   var p, parts
   parts = 1 <= arguments.length ? slice.call(arguments, 0) : []
@@ -173,7 +158,7 @@ FM.Mailbox = createReact({
 FM.Message = createReact({
   displayName: 'Message',
   render: function () {
-    var url = FM.makeId(this.props.mailboxID, this.props.uid)
+    var url = this.props.mailboxID + '/' + this.props.uid
     return React.DOM.div(
       {
         className: 'panel panel-default',
@@ -184,6 +169,9 @@ FM.Message = createReact({
             {
               'data-toggle': 'collapse',
               href: '#' + url,
+
+              // http://stackoverflow.com/a/5154155/168034
+              'data-target': '#' + url.replace(/\//g, '\\/'),
             },
             this.props.subject
           )),
