@@ -1,7 +1,7 @@
 var slice = [].slice
 
 window.FM = window.FM || {}
-FM = window.FM
+var FM = window.FM
 
 
 var getCredentials = function () {
@@ -15,6 +15,14 @@ var getCredentials = function () {
 var getCurrentMailbox = function () {
   var hash = window.location.hash.substring(1).split('/')
   return hash[0]
+}
+
+var createReact = function (arg) {
+  return React.createFactory(React.createClass(arg))
+}
+
+var showContact = function (contact) {
+  return contact.cName + ' <' + contact.cAddress + '>'
 }
 
 
@@ -40,21 +48,6 @@ FM.postJSON = function (url, data, callback) {
     contentType: 'application/json',
     success: callback,
   })
-}
-
-FM.getJSON = function (url, data, callback) {
-  return $.get(url, data, callback, 'json')
-}
-
-
-var FM, createReact, showContact
-
-createReact = function (arg) {
-  return React.createFactory(React.createClass(arg))
-}
-
-showContact = function (contact) {
-  return contact.cName + ' <' + contact.cAddress + '>'
 }
 
 FM.MailboxList = createReact({
@@ -145,7 +138,7 @@ FM.Mailbox = createReact({
       : React.DOM.div(null, 'Loading...')
     return React.DOM.div({ className: 'panel panel-default' },
       React.DOM.div({ className: 'panel-heading' },
-        React.DOM.div({ className: 'panel-title' }, React.DOM.a(
+        React.DOM.h4({ className: 'panel-title' }, React.DOM.a(
           {
             'data-toggle': 'collapse',
             href: '#' + safeID,
@@ -170,13 +163,10 @@ FM.Message = createReact({
   displayName: 'Message',
   render: function () {
     var url = this.props.mailboxID + '/' + this.props.uid
-    return React.DOM.div(
-      {
-        className: 'panel panel-default',
-      },
+    return React.DOM.div({ className: 'panel panel-default' },
       React.DOM.div({ className: 'panel-heading' },
-        React.DOM.div({ className: 'panel-title row' },
-          React.DOM.div({ className: 'col-md-4' }, React.DOM.a(
+        React.DOM.div({ className: 'row' },
+          React.DOM.h4({ className: 'col-md-4 panel-title' }, React.DOM.a(
             {
               'data-toggle': 'collapse',
               href: '#' + url,
