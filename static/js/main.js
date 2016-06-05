@@ -12,6 +12,12 @@ var getCredentials = function () {
     }
 }
 
+var getCurrentMailbox = function () {
+  var hash = window.location.hash.substring(1).split('/')
+  return hash[0]
+}
+
+
 FM.makeId = function () {
   var p, parts
   parts = 1 <= arguments.length ? slice.call(arguments, 0) : []
@@ -103,6 +109,11 @@ FM.Mailbox = createReact({
       }
     })(this))
   },
+  componentDidUpdate: function () {
+    if (getCurrentMailbox() == this.safeID) {
+      $('#' + this.safeID).collapse('show')
+    }
+  },
   handleClick: function (page) {
     this.setState({ currentPage: page })
     return this.loadMessages()
@@ -134,17 +145,17 @@ FM.Mailbox = createReact({
       : React.DOM.div(null, 'Loading...')
     return React.DOM.div({ className: 'panel panel-default' },
       React.DOM.div({ className: 'panel-heading' },
-        React.DOM.h4({ className: 'panel-title' }, React.DOM.a(
+        React.DOM.div({ className: 'panel-title' }, React.DOM.a(
           {
             'data-toggle': 'collapse',
-            href: '#' + this.safeID,
+            href: '#' + safeID,
           },
           this.props.id, badge
         ))
       ),
       React.DOM.div(
         {
-          id: this.safeID,
+          id: safeID,
           className: 'panel-collapse collapse',
         },
         React.DOM.div({ className: 'panel-body' }, messageList),
@@ -270,11 +281,9 @@ FM.Alert = createReact({
 // }
 
 var fetchMailboxes = function () {
-  var callback
-  callback = function (data) {
-    return FM.mailboxList.setState({ mailboxes: data })
-  }
-  return FM.postJSON('/api/mailbox/list', getCredentials(), callback)
+  return FM.postJSON('/api/mailbox/list', getCredentials(), function (data) {
+    FM.mailboxList.setState({ mailboxes: data })
+  })
 }
 
 // var fetchMessages = function (mailbox, page, callback) {
@@ -290,11 +299,7 @@ var fetchMailboxes = function () {
 // }
 
 var fetch = function () {
-  // var query = window.location.hash.substring(1).split('/')
-  // var action = query[0] || 'list'
-  // var mailbox = query[1] || 'INBOX'
-  // var item = query[2] || 1
-  return fetchMailboxes()
+  fetchMailboxes()
 }
 
 $(window).on('hashchange', function () {
