@@ -110,7 +110,7 @@ listMessages poolsRef _r@ListMessageRequest{..} = liftIO $ H.doImap poolsRef lmr
             I.select connection $ T.unpack lmrMailbox
             uids <- I.search connection [I.ALLs]
             -- TODO: maybe just fetch metadata and leave the body for later
-            mapM (H.fetchMessage connection) $ H.getPage uids lmrPage
+            mapM (H.fetchMessage connection) $ H.getPage (reverse uids) lmrPage
 
 sendMessage :: SendMessageRequest -> EitherT S.ServantErr IO ()
 sendMessage _r@SendMessageRequest{..} = liftIO $ do
