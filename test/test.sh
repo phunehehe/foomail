@@ -17,7 +17,7 @@ run_casperjs() {
     }
   ')/bin:$PATH
 
-  casperjs test test/spec.js
+  casperjs test test/spec.js --verbose
 }
 
 run_eslint() {
