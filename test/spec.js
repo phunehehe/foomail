@@ -6,10 +6,15 @@ var email = 'test@test.com'
 var password = 'secret'
 
 
-casper.on('remote.message', function(m) {
+casper.on('page.error', function (message, _) {
   // Error because we never expect messages
-  this.log(m, 'error');
-});
+  this.log(message, 'error')
+})
+
+casper.on('remote.message', function (m) {
+  // Error because we never expect messages
+  this.log(m, 'error')
+})
 
 
 casper.test.begin('Page Title', 1, function (test) {
