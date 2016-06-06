@@ -15,4 +15,11 @@ rules:
     no-multiple-empty-lines:
       - error
       - max: 2
+    no-spaced-func: error
+    no-unused-vars:
+      - error
+      - argsIgnorePattern: _
+    semi:
+      - error
+      - never
     yoda: off
