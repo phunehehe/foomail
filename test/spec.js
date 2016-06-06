@@ -19,8 +19,11 @@ casper.test.begin('Page Title', 1, function (test) {
 
 casper.test.begin('Login', 5, function (test) {
 
+  localStorage.clear()
   casper.start(index)
+
   casper.then(function () {
+
     test.assertVisible('#login-modal', 'Login popup is shown initially')
 
     this.sendKeys('#login-host', host)
