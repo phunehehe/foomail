@@ -12,7 +12,7 @@ var getCredentials = function () {
     }
 }
 
-var getCurrentMailbox = function () {
+var getCurrentMailbox = function() {
   var hash = window.location.hash.substring(1).split('/')
   return hash[0]
 }
@@ -41,7 +41,13 @@ FM.makeId = function () {
 }
 
 FM.postJSON = function (url, data, callback) {
-  return $.ajax({
+  var ajax
+  if (FM.ajaxMock) {
+    ajax = FM.ajaxMock
+  } else {
+    ajax = $.ajax
+  }
+  return ajax({
     url: url,
     type: 'POST',
     data: JSON.stringify(data),

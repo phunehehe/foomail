@@ -6,15 +6,12 @@ var email = 'test@test.com'
 var password = 'secret'
 
 
-casper.on('page.error', function (message, _) {
+var log = function (thing) {
   // Error because we never expect messages
-  this.log(message, 'error')
-})
-
-casper.on('remote.message', function (m) {
-  // Error because we never expect messages
-  this.log(m, 'error')
-})
+  casper.log(JSON.stringify(thing), 'error')
+}
+casper.on('page.error', log)
+casper.on('remote.message', log)
 
 
 casper.test.begin('Page Title', 1, function (test) {
@@ -28,12 +25,18 @@ casper.test.begin('Page Title', 1, function (test) {
 })
 
 
-casper.test.begin('Login', 5, function (test) {
+casper.test.begin('Login', 4, function (test) {
 
   localStorage.clear()
   casper.start(index)
 
   casper.then(function () {
+
+    this.page.evaluate(function () {
+      window.FM.ajaxMock = function (args) {
+        args.success(['test mailbox'])
+      }
+    })
 
     test.assertVisible('#login-modal', 'Login popup is shown initially')
 
@@ -45,11 +48,18 @@ casper.test.begin('Login', 5, function (test) {
     casper.waitWhileVisible('#login-modal', function () {
       test.pass('Login popup is dismissed after submitting')
 
-      test.assertEquals(localStorage.getItem('host'), host, 'Host is saved in local storage')
-      test.assertEquals(localStorage.getItem('email'), email, 'Email is saved in local storage')
-      test.assertEquals(localStorage.getItem('password'), password, 'Password is saved in local storage')
+        test.assertEquals([
+          localStorage.getItem('email'),
+          localStorage.getItem('host'),
+          localStorage.getItem('password'),
+        ], [email, host, password], 'Credentials are saved in local storage')
+
+        casper.waitUntilVisible('#mailbox-list .panel-group', function () {
+          test.pass('Credentials are used to get mailbox list')
+        })
     })
   })
+
   casper.run(function () {
     test.done()
   })
