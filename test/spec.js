@@ -5,6 +5,10 @@ var host = 'test.com'
 var email = 'test@test.com'
 var password = 'secret'
 
+var mailboxName = 'first mailbox'
+var mailboxID = 'first-mailbox'
+var messageUID = 123
+
 
 var log = function (thing) {
   // Error because we never expect messages
@@ -29,12 +33,12 @@ events.forEach(function (e) {
 })
 
 casper.options.onPageInitialized = function (page) {
-  page.evaluate(function () {
+  page.evaluate(function (mailboxName, messageUID) {
     window.FM = window.FM || {}
     window.FM.ajaxMock = function (args) {
       switch(args.url) {
         case '/api/mailbox/list':
-          args.success(['first mailbox'])
+          args.success([mailboxName])
           break
         case '/api/message/count':
           args.success(42)
@@ -46,14 +50,14 @@ casper.options.onPageInitialized = function (page) {
               cName: 'some name',
               cAddress: 'somebody@somewhere.com',
             },
-            mUid: 42,
+            mUid: messageUID,
           }])
           break
       default:
           throw 'Unexpected URL: ' + args.url
       }
     }
-  })
+  }, mailboxName, messageUID)
 }
 
 casper.test.setUp(function () {
@@ -120,17 +124,18 @@ casper.test.begin('Click to View Message', 3, function (test) {
   casper.start(index)
 
   casper.then(function () {
-    var mailboxSelector = 'a[href="#firstmailbox"]'
+    var mailboxSelector = 'a[href="#' + mailboxID + '"]'
     casper.waitUntilVisible(mailboxSelector, function () {
       test.pass('Mailboxes appear after page loads')
       this.click(mailboxSelector)
 
-      var messageSelector = 'a[href="#firstmailbox/42"]'
+      var messageID = mailboxID + '/' + messageUID
+      var messageSelector = 'a[href="#' + messageID + '"]'
       casper.waitUntilVisible(messageSelector, function () {
         test.pass('Messages appear after clicking mailbox')
         this.click(messageSelector)
 
-        casper.waitUntilVisible('[id="firstmailbox/42"]', function () {
+        casper.waitUntilVisible('[id="' + messageID + '"]', function () {
           test.pass('Contents appear after clicking message')
         })
       })

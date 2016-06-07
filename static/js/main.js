@@ -1,5 +1,3 @@
-var slice = [].slice
-
 window.FM = window.FM || {}
 var FM = window.FM
 
@@ -26,18 +24,9 @@ var showContact = function (contact) {
 }
 
 
-FM.makeId = function () {
-  var p, parts
-  parts = 1 <= arguments.length ? slice.call(arguments, 0) : []
-  return ((function () {
-    var i, len, results
-    results = []
-    for (i = 0, len = parts.length; i < len; i++) {
-      p = parts[i]
-      results.push(p.toString().replace(/\W/g, ''))
-    }
-    return results
-  })()).join('-')
+FM.makeId = function (name) {
+  var parts = name.split(/\W/)
+  return parts.join('-')
 }
 
 FM.postJSON = function (url, data, callback) {
