@@ -98,7 +98,7 @@ casper.test.begin('Login', 4, function (test) {
 })
 
 
-casper.test.begin('Forget Me Not', 2, function (test) {
+casper.test.begin('Remember Me', 2, function (test) {
 
   setCredentials()
   casper.start(index)

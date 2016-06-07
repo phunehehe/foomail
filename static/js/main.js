@@ -296,7 +296,7 @@ $('#refresh-button').click(function () {
 })
 
 $('#login-modal').on('shown.bs.modal', function () {
-  return $('#login-email').focus()
+  return $('#login-host').focus()
 })
 
 $('#compose-button').click(function () {
