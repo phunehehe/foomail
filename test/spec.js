@@ -32,7 +32,26 @@ casper.options.onPageInitialized = function (page) {
   page.evaluate(function () {
     window.FM = window.FM || {}
     window.FM.ajaxMock = function (args) {
-      args.success(['test mailbox'])
+      switch(args.url) {
+        case '/api/mailbox/list':
+          args.success(['first mailbox'])
+          break
+        case '/api/message/count':
+          args.success(42)
+          break
+        case '/api/message/list':
+          args.success([{
+            mContents: ['some contents'],
+            mSender: {
+              cName: 'some name',
+              cAddress: 'somebody@somewhere.com',
+            },
+            mUid: 42,
+          }])
+          break
+      default:
+          throw 'Unexpected URL: ' + args.url
+      }
     }
   })
 }
@@ -86,6 +105,35 @@ casper.test.begin('Forget Me Not', 2, function (test) {
 
     casper.waitUntilVisible('#mailbox-list .panel-group', function () {
       test.pass('Credentials are used to get mailbox list')
+    })
+  })
+
+  casper.run(function () {
+    test.done()
+  })
+})
+
+
+casper.test.begin('Click to View Message', 3, function (test) {
+
+  setCredentials()
+  casper.start(index)
+
+  casper.then(function () {
+    var mailboxSelector = 'a[href="#firstmailbox"]'
+    casper.waitUntilVisible(mailboxSelector, function () {
+      test.pass('Mailboxes appear after page loads')
+      this.click(mailboxSelector)
+
+      var messageSelector = 'a[href="#firstmailbox/42"]'
+      casper.waitUntilVisible(messageSelector, function () {
+        test.pass('Messages appear after clicking mailbox')
+        this.click(messageSelector)
+
+        casper.waitUntilVisible('[id="firstmailbox/42"]', function () {
+          test.pass('Contents appear after clicking message')
+        })
+      })
     })
   })
 
