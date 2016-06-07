@@ -1,5 +1,5 @@
 var currentFile = require('fs').absolute(require('system').args[4])
-var index = currentFile + '/../../static/index.html'
+var index = 'file://' + currentFile + '/../../static/index.html'
 
 var host = 'test.com'
 var email = 'test@test.com'
@@ -7,7 +7,10 @@ var password = 'secret'
 
 var mailboxName = 'first mailbox'
 var mailboxID = 'first-mailbox'
+var mailboxSelector = 'a[href="#' + mailboxID + '"]'
 var messageUID = 123
+var messageID = mailboxID + '/' + messageUID
+var messageSelector = 'a[href="#' + messageID + '"]'
 
 
 var log = function (thing) {
@@ -36,6 +39,7 @@ casper.options.onPageInitialized = function (page) {
   page.evaluate(function (mailboxName, messageUID) {
     window.FM = window.FM || {}
     window.FM.ajaxMock = function (args) {
+      // TODO: check credentials (requires renaming fields server side)
       switch(args.url) {
         case '/api/mailbox/list':
           args.success([mailboxName])
@@ -86,8 +90,8 @@ casper.test.begin('Login', 4, function (test) {
           localStorage.getItem('password'),
         ], [email, host, password], 'Credentials are saved in local storage')
 
-        casper.waitUntilVisible('#mailbox-list .panel-group', function () {
-          test.pass('Credentials are used to get mailbox list')
+        casper.waitUntilVisible(mailboxSelector, function () {
+          test.pass('Mailboxes appear')
         })
     })
   })
@@ -107,8 +111,8 @@ casper.test.begin('Remember Me', 2, function (test) {
 
     test.assertInvisible('#login-modal', 'Login popup is not shown if there are saved credentials')
 
-    casper.waitUntilVisible('#mailbox-list .panel-group', function () {
-      test.pass('Credentials are used to get mailbox list')
+    casper.waitUntilVisible(mailboxSelector, function () {
+      test.pass('Mailboxes appear after page loads')
     })
   })
 
@@ -124,13 +128,10 @@ casper.test.begin('Click to View Message', 3, function (test) {
   casper.start(index)
 
   casper.then(function () {
-    var mailboxSelector = 'a[href="#' + mailboxID + '"]'
     casper.waitUntilVisible(mailboxSelector, function () {
       test.pass('Mailboxes appear after page loads')
       this.click(mailboxSelector)
 
-      var messageID = mailboxID + '/' + messageUID
-      var messageSelector = 'a[href="#' + messageID + '"]'
       casper.waitUntilVisible(messageSelector, function () {
         test.pass('Messages appear after clicking mailbox')
         this.click(messageSelector)
@@ -139,6 +140,23 @@ casper.test.begin('Click to View Message', 3, function (test) {
           test.pass('Contents appear after clicking message')
         })
       })
+    })
+  })
+
+  casper.run(function () {
+    test.done()
+  })
+})
+
+
+casper.test.begin('Link to Mailbox', 1, function (test) {
+
+  setCredentials()
+  casper.start(index + '#' + mailboxID)
+
+  casper.then(function () {
+    casper.waitUntilVisible(messageSelector, function () {
+      test.pass('Messages appear after page loads')
     })
   })
 
