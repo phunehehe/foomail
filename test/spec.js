@@ -11,6 +11,13 @@ var log = function (thing) {
   casper.log(JSON.stringify(thing), 'error')
 }
 
+var setCredentials = function () {
+  localStorage.setItem('host', host)
+  localStorage.setItem('email', email)
+  localStorage.setItem('password', password)
+}
+
+
 var events = [
   'error',
   'page.error',
@@ -21,29 +28,24 @@ events.forEach(function (e) {
   casper.on(e, log)
 })
 
-casper.test.begin('Page Title', 1, function (test) {
-  casper.start(index)
-  casper.then(function () {
-    test.assertTitle('fooMail', 'Page title is the one expected')
+casper.options.onPageInitialized = function (page) {
+  page.evaluate(function () {
+    window.FM = window.FM || {}
+    window.FM.ajaxMock = function (args) {
+      args.success(['test mailbox'])
+    }
   })
-  casper.run(function () {
-    test.done()
-  })
+}
+
+casper.test.setUp(function () {
+  // PhantomJS keeps this state accross runs
+  localStorage.clear()
 })
 
 
 casper.test.begin('Login', 4, function (test) {
-
-  localStorage.clear()
   casper.start(index)
-
   casper.then(function () {
-
-    this.page.evaluate(function () {
-      window.FM.ajaxMock = function (args) {
-        args.success(['test mailbox'])
-      }
-    })
 
     test.assertVisible('#login-modal', 'Login popup is shown initially')
 
@@ -73,16 +75,20 @@ casper.test.begin('Login', 4, function (test) {
 })
 
 
-casper.test.begin('Forget Me Not', 1, function (test) {
+casper.test.begin('Forget Me Not', 2, function (test) {
 
-  localStorage.setItem('host', host)
-  localStorage.setItem('email', email)
-  localStorage.setItem('password', password)
-
+  setCredentials()
   casper.start(index)
+
   casper.then(function () {
+
     test.assertInvisible('#login-modal', 'Login popup is not shown if there are saved credentials')
+
+    casper.waitUntilVisible('#mailbox-list .panel-group', function () {
+      test.pass('Credentials are used to get mailbox list')
+    })
   })
+
   casper.run(function () {
     test.done()
   })
