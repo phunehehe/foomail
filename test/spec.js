@@ -10,9 +10,16 @@ var log = function (thing) {
   // Error because we never expect messages
   casper.log(JSON.stringify(thing), 'error')
 }
-casper.on('page.error', log)
-casper.on('remote.message', log)
 
+var events = [
+  'error',
+  'page.error',
+  'remote.message',
+  'resource.error',
+]
+events.forEach(function (e) {
+  casper.on(e, log)
+})
 
 casper.test.begin('Page Title', 1, function (test) {
   casper.start(index)
