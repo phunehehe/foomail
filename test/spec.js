@@ -8,15 +8,17 @@ var password = 'secret'
 var mailboxName = 'first mailbox'
 var mailboxID = 'first-mailbox'
 var mailboxSelector = 'a[href="#' + mailboxID + '"]'
+
 var messageUID = 123
 var messageID = mailboxID + '/' + messageUID
 var messageSelector = 'a[href="#' + messageID + '"]'
+
 var contentsSelector = '[id="' + messageID + '"]'
 
 
 var log = function (thing) {
   // Error because we never expect messages
-  casper.log(JSON.stringify(thing), 'error')
+  casper.test.error(thing)
 }
 
 var setCredentials = function () {
@@ -79,8 +81,7 @@ casper.test.tearDown(function () {
 
 
 casper.test.begin('Login', function (test) {
-  casper.start(index)
-  casper.then(function () {
+  casper.start(index, function () {
 
     test.assertVisible('#login-modal', 'Login popup is shown initially')
 
@@ -88,7 +89,6 @@ casper.test.begin('Login', function (test) {
     this.sendKeys('#login-email', email)
     this.sendKeys('#login-password', password)
     this.click('#login-button')
-
     casper.waitWhileVisible('#login-modal', function () {
       test.pass('Login popup is dismissed after submitting')
 
@@ -101,21 +101,19 @@ casper.test.begin('Login', function (test) {
         casper.waitUntilVisible(mailboxSelector, function () {
           test.pass('Mailboxes appear')
         })
-    })
+      }
+    )
   })
-
   casper.run(function () {
     test.done()
   })
 })
 
 
-casper.test.begin('Remember Me', 2, function (test) {
+casper.test.begin('Remember Me', function (test) {
 
   setCredentials()
-  casper.start(index)
-
-  casper.then(function () {
+  casper.start(index, function () {
 
     test.assertInvisible('#login-modal', 'Login popup is not shown if there are saved credentials')
 
@@ -123,7 +121,6 @@ casper.test.begin('Remember Me', 2, function (test) {
       test.pass('Mailboxes appear after page loads')
     })
   })
-
   casper.run(function () {
     test.done()
   })
@@ -133,9 +130,8 @@ casper.test.begin('Remember Me', 2, function (test) {
 casper.test.begin('Click to View Message', function (test) {
 
   setCredentials()
-  casper.start(index)
+  casper.start(index, function () {
 
-  casper.then(function () {
     casper.waitUntilVisible(mailboxSelector, function () {
       test.pass('Mailboxes appear after page loads')
 
@@ -154,7 +150,6 @@ casper.test.begin('Click to View Message', function (test) {
       })
     })
   })
-
   casper.run(function () {
     test.done()
   })
@@ -164,15 +159,29 @@ casper.test.begin('Click to View Message', function (test) {
 casper.test.begin('Link to Mailbox', function (test) {
 
   setCredentials()
-  casper.start(index + '#' + mailboxID)
+  casper.start(index + '#' + mailboxID, function () {
 
-  casper.then(function () {
     casper.waitUntilVisible(messageSelector, function () {
       test.pass('Messages appear after page loads')
+
       test.assertInvisible(contentsSelector, 'But not contents')
     })
   })
+  casper.run(function () {
+    test.done()
+  })
+})
 
+
+casper.test.begin('Link to Message', function (test) {
+
+  setCredentials()
+  casper.start(index + '#' + mailboxID + '/' + messageUID, function () {
+
+    casper.waitUntilVisible(contentsSelector, function () {
+      test.pass('Contents appear after page loads')
+    })
+  })
   casper.run(function () {
     test.done()
   })
