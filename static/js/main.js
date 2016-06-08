@@ -146,8 +146,10 @@ FM.Mailbox = createReact({
           id: safeID,
           className: 'panel-collapse collapse',
         },
-        React.DOM.div({ className: 'panel-body' }, messageList),
-        React.DOM.div({ className: 'text-center' }, pager)
+        React.DOM.div({ className: 'panel-body' },
+          messageList,
+          React.DOM.div({ className: 'text-center' }, pager)
+        )
       )
     )
   },
@@ -175,12 +177,12 @@ FM.Message = createReact({
           React.DOM.div({ className: 'col-md-4' }, this.props.date)
         )
       ),
-      React.DOM.pre(
+      React.DOM.div(
         {
           id: url,
           className: 'panel-collapse collapse',
         },
-        this.props.contents[0]
+        React.DOM.pre({ className: 'panel-body' }, this.props.contents[0])
       )
     )
   },

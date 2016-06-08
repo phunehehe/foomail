@@ -11,6 +11,7 @@ var mailboxSelector = 'a[href="#' + mailboxID + '"]'
 var messageUID = 123
 var messageID = mailboxID + '/' + messageUID
 var messageSelector = 'a[href="#' + messageID + '"]'
+var contentsSelector = '[id="' + messageID + '"]'
 
 
 var log = function (thing) {
@@ -35,8 +36,8 @@ events.forEach(function (e) {
   casper.on(e, log)
 })
 
-casper.options.onPageInitialized = function (page) {
-  page.evaluate(function (mailboxName, messageUID) {
+casper.options.onPageInitialized = function () {
+  casper.evaluate(function (mailboxName, messageUID) {
     window.FM = window.FM || {}
     window.FM.ajaxMock = function (args) {
       // TODO: check credentials (requires renaming fields server side)
@@ -54,6 +55,7 @@ casper.options.onPageInitialized = function (page) {
               cName: 'some name',
               cAddress: 'somebody@somewhere.com',
             },
+            mSubject: 'some subject',
             mUid: messageUID,
           }])
           break
@@ -69,8 +71,14 @@ casper.test.setUp(function () {
   localStorage.clear()
 })
 
+casper.test.tearDown(function () {
+  // For some reason the page URL seems to be kept between runs
+  // TODO: maybe report a CasperJS issue
+  casper.clear()
+})
 
-casper.test.begin('Login', 4, function (test) {
+
+casper.test.begin('Login', function (test) {
   casper.start(index)
   casper.then(function () {
 
@@ -122,7 +130,7 @@ casper.test.begin('Remember Me', 2, function (test) {
 })
 
 
-casper.test.begin('Click to View Message', 3, function (test) {
+casper.test.begin('Click to View Message', function (test) {
 
   setCredentials()
   casper.start(index)
@@ -130,13 +138,17 @@ casper.test.begin('Click to View Message', 3, function (test) {
   casper.then(function () {
     casper.waitUntilVisible(mailboxSelector, function () {
       test.pass('Mailboxes appear after page loads')
-      this.click(mailboxSelector)
 
+      test.assertInvisible(messageSelector, 'But not messages')
+
+      this.click(mailboxSelector)
       casper.waitUntilVisible(messageSelector, function () {
         test.pass('Messages appear after clicking mailbox')
-        this.click(messageSelector)
 
-        casper.waitUntilVisible('[id="' + messageID + '"]', function () {
+        test.assertInvisible(contentsSelector, 'But not contents')
+
+        this.click(messageSelector)
+        casper.waitUntilVisible(contentsSelector, function () {
           test.pass('Contents appear after clicking message')
         })
       })
@@ -149,7 +161,7 @@ casper.test.begin('Click to View Message', 3, function (test) {
 })
 
 
-casper.test.begin('Link to Mailbox', 1, function (test) {
+casper.test.begin('Link to Mailbox', function (test) {
 
   setCredentials()
   casper.start(index + '#' + mailboxID)
@@ -157,6 +169,7 @@ casper.test.begin('Link to Mailbox', 1, function (test) {
   casper.then(function () {
     casper.waitUntilVisible(messageSelector, function () {
       test.pass('Messages appear after page loads')
+      test.assertInvisible(contentsSelector, 'But not contents')
     })
   })
 
