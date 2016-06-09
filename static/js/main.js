@@ -15,6 +15,15 @@ var getCurrentMailbox = function() {
   return hash[0]
 }
 
+var getCurrentMessage = function() {
+  var hash = window.location.hash.substring(1).split('/')
+  return hash[1]
+}
+
+var jqueryEscape = function(selector) {
+  return selector.replace(/\//g, '\\/')
+}
+
 var createReact = function (arg) {
   return React.createFactory(React.createClass(arg))
 }
@@ -158,18 +167,26 @@ FM.Mailbox = createReact({
 
 FM.Message = createReact({
   displayName: 'Message',
+
+  componentDidMount: function () {
+    if (getCurrentMailbox() == this.props.mailboxID
+        && getCurrentMessage() == this.props.uid) {
+      $('#' + jqueryEscape(this.url)).collapse('show')
+    }
+  },
+
   render: function () {
-    var url = this.props.mailboxID + '/' + this.props.uid
+    this.url = this.props.mailboxID + '/' + this.props.uid
     return React.DOM.div({ className: 'panel panel-default' },
       React.DOM.div({ className: 'panel-heading' },
         React.DOM.div({ className: 'row' },
           React.DOM.h4({ className: 'col-md-4 panel-title' }, React.DOM.a(
             {
               'data-toggle': 'collapse',
-              href: '#' + url,
+              href: '#' + this.url,
 
               // http://stackoverflow.com/a/5154155/168034
-              'data-target': '#' + url.replace(/\//g, '\\/'),
+              'data-target': '#' + jqueryEscape(this.url),
             },
             this.props.subject
           )),
@@ -179,7 +196,7 @@ FM.Message = createReact({
       ),
       React.DOM.div(
         {
-          id: url,
+          id: this.url,
           className: 'panel-collapse collapse',
         },
         React.DOM.pre({ className: 'panel-body' }, this.props.contents[0])
