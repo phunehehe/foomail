@@ -26,8 +26,8 @@ import           Network.HaskellNet.IMAP.Connection (IMAPConnection)
 import           Network.HaskellNet.IMAP.Types      (MailboxName)
 import           Network.HaskellNet.SMTP.SSL        (connectSMTPSTARTTLS)
 import           Network.Wai.Handler.Warp           (run)
-import           Servant                            ((:<|>) (..), (:>), JSON,
-                                                     Post, ReqBody)
+import           Servant                            ((:<|>) (..), (:>), Handler,
+                                                     JSON, Post, ReqBody)
 
 
 data CountMessageRequest = CountMessageRequest { cmrCredentials :: H.Credentials
@@ -71,7 +71,7 @@ server poolsRef =
  :<|> sendMessage
  :<|> S.serveDirectory "./static"
 
-listMailboxes :: IORef (M.Map String (Pool IMAPConnection)) -> H.Credentials -> EitherT S.ServantErr IO [MailboxName]
+listMailboxes :: IORef (M.Map String (Pool IMAPConnection)) -> H.Credentials -> Handler [MailboxName]
 --listMailboxes _ _ = liftIO $ return ["First Mailbox", "Second Mailbox", "Third Mailbox"]
 listMailboxes poolsRef credentials = liftIO $ H.doImap poolsRef credentials getMailboxes
     where
@@ -79,7 +79,7 @@ listMailboxes poolsRef credentials = liftIO $ H.doImap poolsRef credentials getM
             mailboxes <- I.list connection
             return $ H.filterMailboxes mailboxes
 
-countMessages :: IORef (M.Map String (Pool IMAPConnection)) -> CountMessageRequest -> EitherT S.ServantErr IO Int
+countMessages :: IORef (M.Map String (Pool IMAPConnection)) -> CountMessageRequest -> Handler Int
 --countMessages _ _ = liftIO $ return 42
 countMessages poolsRef _r@CountMessageRequest{..} = liftIO $ H.doImap poolsRef cmrCredentials getCount
     where
@@ -88,7 +88,7 @@ countMessages poolsRef _r@CountMessageRequest{..} = liftIO $ H.doImap poolsRef c
             uids <- I.search connection [I.ALLs]
             return $ length uids
 
-listMessages :: IORef (M.Map String (Pool IMAPConnection)) -> ListMessageRequest -> EitherT S.ServantErr IO [H.Message]
+listMessages :: IORef (M.Map String (Pool IMAPConnection)) -> ListMessageRequest -> Handler [H.Message]
 --listMessages _ _ = liftIO $ return
 --    [ H.Message
 --        { H.mUid = Nothing
@@ -112,7 +112,7 @@ listMessages poolsRef _r@ListMessageRequest{..} = liftIO $ H.doImap poolsRef lmr
             -- TODO: maybe just fetch metadata and leave the body for later
             mapM (H.fetchMessage connection) $ H.getPage (reverse uids) lmrPage
 
-sendMessage :: SendMessageRequest -> EitherT S.ServantErr IO ()
+sendMessage :: SendMessageRequest -> Handler ()
 sendMessage _r@SendMessageRequest{..} = liftIO $ do
     -- TODO: handle authentication failure
     connection <- smtpConnect smrCredentials

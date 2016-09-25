@@ -1,12 +1,21 @@
-{ stdenv, fetchFromGitLab, cabal2nix, haskellPackages }:
+{ cabal2nix
+, callPackage
+, haskellPackages
+, stdenv
+}:
+
 let
+
   src = stdenv.mkDerivation {
+
     src = ./.;
     name = "foomail";
+
     buildInputs = [
       cabal2nix
       haskellPackages.hpack
     ];
+
     installPhase = ''
       cp --no-preserve=mode --recursive $src $out
       cd $out
@@ -15,7 +24,11 @@ let
         do mv $f ''${f/.min/}
         done
       hpack
-      cabal2nix . > default.nix
+      cabal2nix --shell . > shell.nix
     '';
   };
-in haskellPackages.callPackage "${src}/default.nix" {}
+
+in callPackage "${src}/shell.nix" {
+  # record doesn't work with GHC 8 yet
+  compiler = "ghc7103";
+}

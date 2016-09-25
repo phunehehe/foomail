@@ -101,7 +101,7 @@ getPage items pageNumber = take messagesPerPage $ drop before items
 mimeContents :: M.MIMEValue -> [Text]
 mimeContents message =
     case M.mime_val_content message of
-        M.Single content -> [T.fromStrict content]
+        M.Single content  -> [T.fromStrict content]
         M.Multi subValues -> mimeContents =<< subValues
 
 parseContacts :: Maybe Text -> [Contact]
