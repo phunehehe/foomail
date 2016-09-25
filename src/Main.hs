@@ -13,7 +13,6 @@ import qualified Servant                            as S
 import qualified Helper                             as H
 
 import           Control.Monad.IO.Class             (liftIO)
-import           Control.Monad.Trans.Either         (EitherT)
 import           Data.Aeson                         (FromJSON, ToJSON)
 import           Data.ByteString.Lazy               (toStrict)
 import           Data.IORef                         (IORef, newIORef)

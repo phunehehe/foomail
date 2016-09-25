@@ -1,34 +1,55 @@
-{ cabal2nix
-, callPackage
-, haskellPackages
-, stdenv
-}:
+{ haskellPackages, preConfigure, runCommand, spec, stdenv }:
 
 let
 
-  src = stdenv.mkDerivation {
+  inherit (spec) name;
+  inherit (stdenv) lib;
 
-    src = ./.;
-    name = "foomail";
+  getVersion = name:
+  let
+    versionFromGhc = lib.removeSuffix "\n" (builtins.readFile (
+      runCommand "${name}-version" {} ''
+        ${haskellPackages.ghc}/bin/ghc-pkg field ${name} version --simple-output > $out
+      ''));
+  in haskellPackages.${name}.version or versionFromGhc;
 
-    buildInputs = [
-      cabal2nix
-      haskellPackages.hpack
-    ];
-
-    installPhase = ''
-      cp --no-preserve=mode --recursive $src $out
-      cd $out
-      find static -iname '*.min.*' \
-      | while read f
-        do mv $f ''${f/.min/}
-        done
-      hpack
-      cabal2nix --shell . > shell.nix
-    '';
+  dependenciesWithVersions = map (p: "${p} == ${getVersion p}");
+  hpackDependencies = {
+    dependencies = dependenciesWithVersions spec.dependencies;
+    tests = lib.mapAttrs (name: value: {
+      dependencies = dependenciesWithVersions value.dependencies;
+    }) spec.tests;
   };
+  hpack = lib.recursiveUpdate spec hpackDependencies;
 
-in callPackage "${src}/shell.nix" {
-  # record doesn't work with GHC 8 yet
-  compiler = "ghc7103";
+  hpackFile = builtins.toFile "package.yaml" (builtins.toJSON hpack);
+  cabalFile = runCommand "${name}.cabal" {} ''
+    cp ${hpackFile} package.yaml
+    ${haskellPackages.hpack}/bin/hpack
+    mv ${name}.cabal $out
+  '';
+  linkCabalFile = ''
+    ln --force --symbolic ${cabalFile} ${name}.cabal
+  '';
+
+in haskellPackages.mkDerivation {
+
+  pname = name;
+  isExecutable = lib.hasAttr "executables" spec;
+  isLibrary = lib.hasAttr "library" spec;
+  license = lib.licenses.mpl20;
+  src = ./.;
+  version = spec.version or "0.0.0";
+
+  executableHaskellDepends = map (d: haskellPackages.${d}) spec.dependencies;
+  testHaskellDepends = map (d:
+    haskellPackages.${d}
+  ) (lib.concatLists (lib.mapAttrsToList (_: t: t.dependencies) spec.tests));
+
+  preConfigure = ''
+    ${preConfigure}
+    ${linkCabalFile}
+  '';
+
+  shellHook = linkCabalFile;
 }
