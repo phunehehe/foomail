@@ -35,7 +35,7 @@ run_hspec() {
   # This conveniently has `cabal test` baked in
   $nix_build --expr '
     let inherit (import <nixpkgs> {}) pkgs;
-    in pkgs.callPackage ./package.nix {}
+    in pkgs.callPackage ./default.nix {}
   '
 }
 
