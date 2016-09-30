@@ -16,6 +16,12 @@ run_eslint() {
   ')/bin/eslint" static/js/main.js test/spec.js
 }
 
+run_hlint() {
+  "$($nix_build --expr '
+    (import <nixpkgs> {}).haskellPackages.hlint
+  ')/bin/hlint" ./**/*.hs
+}
+
 run_hspec() {
   # This conveniently has `cabal test` baked in
   $nix_build --expr '
@@ -27,6 +33,7 @@ run_hspec() {
 run_all() {
   run_casperjs
   run_eslint
+  run_hlint
   run_hspec
 }
 
