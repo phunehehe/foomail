@@ -20,8 +20,14 @@ var getCurrentMessage = function() {
   return hash[1]
 }
 
-var jqueryEscape = function(selector) {
-  return selector.replace(/\//g, '\\/')
+var escapeMailbox = function (name) {
+  var parts = name.split(/\W/)
+  return parts.join('-')
+}
+
+var makeSelector = function(mailbox, messageID) {
+    // http://stackoverflow.com/a/5154155/168034
+    return mailbox + '\\/' + messageID
 }
 
 var createReact = function (arg) {
@@ -32,11 +38,6 @@ var showContact = function (contact) {
   return contact.cName + ' <' + contact.cAddress + '>'
 }
 
-
-FM.makeId = function (name) {
-  var parts = name.split(/\W/)
-  return parts.join('-')
-}
 
 FM.postJSON = function (url, data, callback) {
   var ajax
@@ -95,7 +96,7 @@ FM.Mailbox = createReact({
     })(this))
   },
   componentDidMount: function () {
-    this.safeID = FM.makeId(this.props.id)
+    this.safeID = escapeMailbox(this.props.id)
     $(document).on('show.bs.collapse', '#' + this.safeID, this.loadMessages)
     return FM.postJSON('/api/message/count', {
       cmrCredentials: getCredentials(),
@@ -171,7 +172,7 @@ FM.Message = createReact({
   componentDidMount: function () {
     if (getCurrentMailbox() == this.props.mailboxID
         && getCurrentMessage() == this.props.uid) {
-      $('#' + jqueryEscape(this.url)).collapse('show')
+      $('#' + makeSelector(this.props.mailboxID, this.props.uid)).collapse('show')
     }
   },
 
@@ -184,9 +185,7 @@ FM.Message = createReact({
             {
               'data-toggle': 'collapse',
               href: '#' + this.url,
-
-              // http://stackoverflow.com/a/5154155/168034
-              'data-target': '#' + jqueryEscape(this.url),
+              'data-target': '#' + makeSelector(this.props.mailboxID, this.props.uid),
             },
             this.props.subject
           )),
