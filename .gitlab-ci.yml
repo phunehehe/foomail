@@ -3,6 +3,8 @@ casperjs:
     script: ./test/test.sh casperjs
 eslint:
     script: ./test/test.sh eslint
+hlint:
+    script: ./test/test.sh hlint
 hspec:
     script: ./test/test.sh hspec
     artifacts:
