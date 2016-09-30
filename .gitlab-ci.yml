@@ -1,7 +1,10 @@
-image: phunehehe/nix:nixos-16.03
+image: phunehehe/nix:16.09
 casperjs:
     script: ./test/test.sh casperjs
 eslint:
     script: ./test/test.sh eslint
 hspec:
     script: ./test/test.sh hspec
+    artifacts:
+        paths:
+          - ./foomail.cabal
