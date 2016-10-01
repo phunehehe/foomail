@@ -5,8 +5,8 @@ eslint:
     script: ./test/test.sh eslint
 hlint:
     script: ./test/test.sh hlint
-hspec:
-    script: ./test/test.sh hspec
+cabal:
+    script: ./test/test.sh cabal
     artifacts:
         paths:
           - ./foomail.cabal
