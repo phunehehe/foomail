@@ -21,10 +21,10 @@ run-eslint() {
 }
 
 run-hlint() {
-  $(find-bin findutils find) -name '*.hs' -exec "$(find-bin haskellPackages.hlint hlint)" {} +
+  $(find-bin haskellPackages.hlint hlint) .
 }
 
-run-hspec() {
+run-cabal() {
   # This conveniently has `cabal test` baked in
   $nix_build --expr '
     let inherit (import <nixpkgs> {}) pkgs;
@@ -36,7 +36,7 @@ run-all() {
   run-casperjs
   run-eslint
   run-hlint
-  run-hspec
+  run-cabal
 }
 
 "run-${1:-all}"
