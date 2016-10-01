@@ -1,4 +1,4 @@
-image: phunehehe/nix:16.09
+image: phunehehe/foomail-ci
 casperjs:
     script: ./test/test.sh casperjs
 eslint:
