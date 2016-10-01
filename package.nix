@@ -29,7 +29,8 @@ let
     mv ${name}.cabal $out
   '';
 
-  # GitLab CI doesn't seem to resolve symlinks in artifacts
+  # Symlinking won't work because GitLab CI doesn't resolve symlinks when
+  # creating artifacts
   copyCabalFile = ''
     cp --force ${cabalFile} ${name}.cabal
   '';

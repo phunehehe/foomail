@@ -1,12 +1,12 @@
 image: phunehehe/foomail-ci
+cabal:
+    script: ./test/test.sh cabal
+    artifacts:
+        paths:
+          - ./foomail.cabal
 casperjs:
     script: ./test/test.sh casperjs
 eslint:
     script: ./test/test.sh eslint
 hlint:
     script: ./test/test.sh hlint
-cabal:
-    script: ./test/test.sh cabal
-    artifacts:
-        paths:
-          - ./foomail.cabal
