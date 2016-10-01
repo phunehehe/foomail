@@ -4,25 +4,27 @@ set -efuxo pipefail
 nix_build='nix-build --no-out-link'
 PATH=$($nix_build '<nixpkgs>' --attr nix)/bin
 
-run_casperjs() {
-  "$($nix_build --expr '
-    (import <nixpkgs> {}).casperjs
-  ')/bin/casperjs" test test/spec.js --verbose
+find-bin() {
+  attr=$1
+  command=$2
+  bin="$($nix_build '<nixpkgs>' --attr "$attr")/bin/$command"
+  [[ -e $bin ]] && echo "$bin"
 }
 
-run_eslint() {
-  "$($nix_build --expr '
-    (import <nixpkgs> {}).nodePackages.eslint
-  ')/bin/eslint" static/js/main.js test/spec.js
+
+run-casperjs() {
+  $(find-bin casperjs casperjs) test test/spec.js --verbose
 }
 
-run_hlint() {
-  "$($nix_build --expr '
-    (import <nixpkgs> {}).haskellPackages.hlint
-  ')/bin/hlint" ./**/*.hs
+run-eslint() {
+  $(find-bin nodePackages.eslint eslint) static/js/main.js test/spec.js
 }
 
-run_hspec() {
+run-hlint() {
+  $(find-bin findutils find) -name '*.hs' -exec "$(find-bin haskellPackages.hlint hlint)" {} +
+}
+
+run-hspec() {
   # This conveniently has `cabal test` baked in
   $nix_build --expr '
     let inherit (import <nixpkgs> {}) pkgs;
@@ -30,11 +32,11 @@ run_hspec() {
   '
 }
 
-run_all() {
-  run_casperjs
-  run_eslint
-  run_hlint
-  run_hspec
+run-all() {
+  run-casperjs
+  run-eslint
+  run-hlint
+  run-hspec
 }
 
-run_"${1:-all}"
+"run-${1:-all}"
