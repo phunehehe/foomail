@@ -2,7 +2,7 @@
 
 let drv = pkgs.callPackage ./package.nix {
 
-  # # record doesn't work with GHC 8 yet
+  # record doesn't work with GHC 8 yet
   haskellPackages = pkgs.haskell.packages.ghc7103;
 
   preConfigure = ''
