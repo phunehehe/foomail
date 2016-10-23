@@ -1,4 +1,9 @@
-{ haskellPackages, preConfigure, runCommand, spec, stdenv }:
+{ haskellPackages
+, runCommand
+, spec
+, stdenv
+, preConfigure ? ""
+}:
 
 let
 
