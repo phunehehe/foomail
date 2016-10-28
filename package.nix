@@ -26,12 +26,16 @@ let
     }) spec.tests;
   };
   hpack = lib.recursiveUpdate spec hpackDependencies;
-
   hpackFile = builtins.toFile "package.yaml" (builtins.toJSON hpack);
+
   cabalFile = runCommand "${name}.cabal" {} ''
-    cp ${hpackFile} package.yaml
-    ${haskellPackages.hpack}/bin/hpack
-    mv ${name}.cabal $out
+
+    # hpack needs the source to glob e.g. data-files
+    cp --recursive --no-preserve=mode ${src} src
+
+    cp ${hpackFile} src/package.yaml
+    (cd src && ${haskellPackages.hpack}/bin/hpack)
+    mv src/${name}.cabal $out
   '';
 
   # Symlinking won't work because GitLab CI doesn't resolve symlinks when
@@ -40,13 +44,18 @@ let
     cp --force ${cabalFile} ${name}.cabal
   '';
 
+  src = runCommand "${name}-src" {} ''
+    cp --recursive --no-preserve=mode ${./.} $out
+    (cd $out && ${preConfigure})
+  '';
+
 in haskellPackages.mkDerivation {
 
+  inherit src;
   pname = name;
   isExecutable = lib.hasAttr "executables" spec;
   isLibrary = lib.hasAttr "library" spec;
   license = lib.licenses.mpl20;
-  src = ./.;
   version = spec.version or "0.0.0";
 
   executableHaskellDepends = map (d: haskellPackages.${d}) spec.dependencies;
@@ -55,7 +64,6 @@ in haskellPackages.mkDerivation {
   ) (lib.concatLists (lib.mapAttrsToList (_: t: t.dependencies) spec.tests));
 
   preConfigure = ''
-    ${preConfigure}
     ${copyCabalFile}
   '';
 
