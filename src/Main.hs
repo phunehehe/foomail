@@ -42,15 +42,16 @@ data ListMessageRequest = ListMessageRequest { lmrCredentials :: H.Credentials
 instance ToJSON ListMessageRequest
 instance FromJSON ListMessageRequest
 
-data SendMessageRequest = SendMessageRequest { smrCredentials :: H.Credentials
-                                             , smrCc          :: [H.Contact]
-                                             , smrBcc         :: [H.Contact]
-                                             , smrDate        :: Maybe T.Text
-                                             , smrSender      :: Maybe H.Contact
-                                             , smrSubject     :: Maybe T.Text
-                                             , smrTo          :: [H.Contact]
-                                             , smrContents    :: [T.Text]
-                                             } deriving (Show, Generic)
+data SendMessageRequest = SendMessageRequest
+  { smrCredentials :: H.Credentials
+  , smrCc          :: [H.Contact]
+  , smrBcc         :: [H.Contact]
+  , smrDate        :: Maybe T.Text
+  , smrSender      :: Maybe H.Contact
+  , smrSubject     :: Maybe T.Text
+  , smrTo          :: [H.Contact]
+  , smrContents    :: [T.Text]
+  } deriving (Show, Generic)
 instance ToJSON SendMessageRequest
 instance FromJSON SendMessageRequest
 
@@ -113,7 +114,6 @@ listMessages poolsRef _r@ListMessageRequest{..} = liftIO $ H.doImap poolsRef lmr
 
 sendMessage :: SendMessageRequest -> Handler ()
 sendMessage _r@SendMessageRequest{..} = liftIO $ do
-    -- TODO: handle authentication failure
     connection <- smtpConnect smrCredentials
     SMTP.sendMail sender receivers mailContent connection
     where

@@ -333,12 +333,18 @@ $('#login-modal').on('hide.bs.modal', function () {
 })
 
 $('#compose-submit').click(function () {
-  // var message, recipients, subject
-  // recipients = $('#compose-recipients').val()
-  // subject = $('#compose-subject').val()
-  // message = $('#compose-message').val()
-  // console.log('Sending message ' + subject + ' to ' + recipients + ': ' + message)
-  return $('#compose-modal').modal('hide')
+  var recipients = $('#compose-recipients').val()
+  var subject = $('#compose-subject').val()
+  var message = $('#compose-message').val()
+  return FM.postJSON('/api/message/send', {
+    smrBcc        : [],
+    smrCc         : [],
+    smrContents   : [message],
+    smrCredentials: getCredentials(),
+    smrSubject    : subject,
+    smrTo         : [{ cAddress: recipients }],
+  }, (function (data) {
+  }))
 })
 
 FM.mailboxList = ReactDOM.render(FM.MailboxList(), document.getElementById('mailbox-list'))
