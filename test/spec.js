@@ -61,6 +61,10 @@ casper.options.onPageInitialized = function () {
             mUid: messageUID,
           }])
           break
+        case '/api/message/send':
+          // TODO: check POST data
+          args.success()
+          break
       default:
           throw 'Unexpected URL: ' + args.url
       }
@@ -180,6 +184,32 @@ casper.test.begin('Link to Message', function (test) {
 
     casper.waitUntilVisible(contentsSelector, function () {
       test.pass('Contents appear after page loads')
+    })
+  })
+  casper.run(function () {
+    test.done()
+  })
+})
+
+
+casper.test.begin('Send Message', function (test) {
+
+  setCredentials()
+  casper.start(index, function () {
+
+    test.assertInvisible('#compose-modal', 'Compose modal is not shown initially')
+    this.click('#compose-button')
+    casper.waitUntilVisible('#compose-modal', function () {
+      test.pass('Compose modal appears after clicking')
+    })
+
+    this.sendKeys('#compose-recipients', '')
+    this.sendKeys('#compose-subject', 'test subject')
+    this.sendKeys('#compose-message', '')
+    this.click('#compose-submit')
+
+    casper.waitWhileVisible('#compose-modal', function () {
+      test.pass('Compose modal disappears after submitting')
     })
   })
   casper.run(function () {

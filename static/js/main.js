@@ -3,11 +3,11 @@ var FM = window.FM
 
 
 var getCredentials = function () {
-    return {
-        cHost: localStorage.getItem('host'),
-        cEmail: localStorage.getItem('email'),
-        cPassword: localStorage.getItem('password'),
-    }
+  return {
+    cHost: localStorage.getItem('host'),
+    cEmail: localStorage.getItem('email'),
+    cPassword: localStorage.getItem('password'),
+  }
 }
 
 var getCurrentMailbox = function() {
@@ -26,8 +26,8 @@ var escapeMailbox = function (name) {
 }
 
 var makeSelector = function(mailbox, messageID) {
-    // http://stackoverflow.com/a/5154155/168034
-    return mailbox + '\\/' + messageID
+  // http://stackoverflow.com/a/5154155/168034
+  return mailbox + '\\/' + messageID
 }
 
 var createReact = function (arg) {
@@ -343,7 +343,8 @@ $('#compose-submit').click(function () {
     smrCredentials: getCredentials(),
     smrSubject    : subject,
     smrTo         : [{ cAddress: recipients }],
-  }, (function (data) {
+  }, (function (_) {
+    $('#compose-modal').modal('hide')
   }))
 })
 
