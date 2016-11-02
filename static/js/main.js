@@ -39,7 +39,7 @@ var showContact = function (contact) {
 }
 
 
-FM.postJSON = function (url, data, callback) {
+FM.postJSON = function (url, data, success, error) {
   var ajax
   if (FM.ajaxMock) {
     ajax = FM.ajaxMock
@@ -51,7 +51,8 @@ FM.postJSON = function (url, data, callback) {
     type: 'POST',
     data: JSON.stringify(data),
     contentType: 'application/json',
-    success: callback,
+    success: success,
+    error: error,
   })
 }
 
@@ -343,9 +344,14 @@ $('#compose-submit').click(function () {
     smrCredentials: getCredentials(),
     smrSubject    : subject,
     smrTo         : [{ cAddress: recipients }],
-  }, (function () {
+  }, function () {
     $('#compose-modal').modal('hide')
-  }))
+  }, function (xhr) {
+    var alert = $('#compose-alert')
+    alert.find('span').text('An error happened. Maybe try again later?')
+    alert.find('code').text(xhr.responseText)
+    alert.show()
+  })
 })
 
 FM.mailboxList = ReactDOM.render(FM.MailboxList(), document.getElementById('mailbox-list'))
