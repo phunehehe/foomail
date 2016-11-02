@@ -13,6 +13,8 @@ var messageUID = 123
 var messageID = mailboxID + '/' + messageUID
 var messageSelector = 'a[href="#' + messageID + '"]'
 
+// Can't simply use #messageID because messageID has a slash and CasperJS
+// doesn't like that
 var contentsSelector = '[id="' + messageID + '"]'
 
 
@@ -62,7 +64,6 @@ casper.options.onPageInitialized = function () {
           }])
           break
         case '/api/message/send':
-          // TODO: check POST data
           args.success()
           break
       default:
@@ -201,15 +202,15 @@ casper.test.begin('Send Message', function (test) {
     this.click('#compose-button')
     casper.waitUntilVisible('#compose-modal', function () {
       test.pass('Compose modal appears after clicking')
-    })
 
-    this.sendKeys('#compose-recipients', '')
-    this.sendKeys('#compose-subject', 'test subject')
-    this.sendKeys('#compose-message', '')
-    this.click('#compose-submit')
+      this.sendKeys('#compose-recipients', '')
+      this.sendKeys('#compose-subject', '')
+      this.sendKeys('#compose-message', '')
+      this.click('#compose-submit')
 
-    casper.waitWhileVisible('#compose-modal', function () {
-      test.pass('Compose modal disappears after submitting')
+      casper.waitWhileVisible('#compose-modal', function () {
+        test.pass('Compose modal disappears after submitting')
+      })
     })
   })
   casper.run(function () {

@@ -343,7 +343,7 @@ $('#compose-submit').click(function () {
     smrCredentials: getCredentials(),
     smrSubject    : subject,
     smrTo         : [{ cAddress: recipients }],
-  }, (function (_) {
+  }, (function () {
     $('#compose-modal').modal('hide')
   }))
 })
