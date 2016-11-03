@@ -61,4 +61,5 @@ run-all() {
   run-hlint
 }
 
+PATH=$(make-bin-path coreutils git gnused) git submodule update --init --recursive
 "run-${1:-all}"

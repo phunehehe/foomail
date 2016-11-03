@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> {} }:
 
-let drv = pkgs.callPackage ./package.nix {
+let drv = pkgs.callPackage ./nix2cabal {
 
   # record doesn't work with GHC 8 yet
   haskellPackages = pkgs.haskell.packages.ghc7103;
