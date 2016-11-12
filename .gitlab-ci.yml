@@ -1,4 +1,4 @@
-image: phunehehe/foomail-ci
+image: phunehehe/nix:16.09
 cabal:
     script: ./test/test.sh cabal
     artifacts:

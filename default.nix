@@ -2,9 +2,6 @@
 
 let drv = pkgs.callPackage ./nix2cabal {
 
-  # record doesn't work with GHC 8 yet
-  haskellPackages = pkgs.haskell.packages.ghc7103;
-
   preConfigure = ''
     find static -iname '*.min.*' \
     | while read f
@@ -31,7 +28,6 @@ let drv = pkgs.callPackage ./nix2cabal {
       "containers"
       "either"
       "mime"
-      "record"
       "resource-pool"
       "servant-server"
       "text"
