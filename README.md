@@ -1,5 +1,7 @@
 # fooMail
 
+[![pipeline status](https://gitlab.com/phunehehe/foomail/badges/master/pipeline.svg)](https://gitlab.com/phunehehe/foomail/commits/master)
+
 fooMail is a webmail application. It can be used as a client of any mail
 servers supporting IMAP and SMTP (i.e. most if not all of them).
 
